@@ -27,8 +27,8 @@ import Text.Parsec ( ParseError )
 import Data.Function
 
 prettyError :: Pretty a => a -> a -> String
-prettyError exp act = (render $ "Expected" <+> quotes (pPrint exp) <> semi <+>
-                                "got" <+> quotes (pPrint act))
+prettyError exp act = (render $ text "Expected" <+> quotes (pPrint exp) <> semi <+>
+                                text "got" <+> quotes (pPrint act))
 
 (@?=) :: (Eq a, Pretty a) => a -> a -> Assertion
 act @?= exp = (act == exp) @? prettyError exp act

@@ -21,7 +21,8 @@ import Language.Glambda.Util
 
 import Text.Parsec.Token
 import Text.Parsec.Language
-import Text.Parsec.Prim  ( Parsec, parse )
+import Text.Parsec.Pos
+import Text.Parsec.Prim  ( Parsec, parse, getPosition )
 import Text.Parsec.Error
 
 import Text.Parser.Char
@@ -46,16 +47,16 @@ char_ :: Char -> Lexer ()
 char_ = void . char
 
 ---------------------------------------------------
--- | Lex some program text into a list of 'Token's
-lex :: Text -> Either ParseError [Token]
+-- | Lex some program text into a list of 'LToken's
+lex :: Text -> Either ParseError [LToken]
 lex = parse lexer ""
 
 -- | Overall lexer
-lexer :: Lexer [Token]
+lexer :: Lexer [LToken]
 lexer = (catMaybes <$> many lexer1_ws) <* eof
 
 -- | Lex either one token or some whitespace
-lexer1_ws :: Lexer (Maybe Token)
+lexer1_ws :: Lexer (Maybe LToken)
 lexer1_ws
   = (Nothing <$ whitespace)
     <|>
@@ -89,30 +90,36 @@ line_comment = do
   void $ manyTill anyChar (eof <|> void newline)
 
 -- | Lex one token
-lexer1 :: Lexer Token
-lexer1
-  = choice [ symbolic
-           , word_token
-           , Integer <$> Parser.natural ]
+lexer1 :: Lexer LToken
+lexer1 = do
+  pos <- getPosition
+  L pos <$> choice [ symbolic
+                   , word_token
+                   , Integer <$> Parser.natural ]
 
 -- | Lex one non-alphanumeric token
 symbolic :: Lexer Token
 symbolic = choice [ LParen  <$  char '('
                   , RParen  <$  char ')'
                   , Lambda  <$  char '\\'
+                  , Dot     <$  char '.'
                   , Arrow   <$  try (text "->")
-                  , DColon  <$  text "::"
+                  , Colon   <$  char ':'
                   , ArithOp <$> arith_op
-                  , Equals  <$  try (text "==")
                   , Assign  <$  char '=' ]
 
 -- | Lex one arithmetic operator
-arith_op :: Lexer ArithOp
-arith_op = choice [ Plus   <$ char '+'
-                  , Minus  <$ char '-'
-                  , Times  <$ char '*'
-                  , Divide <$ char '/'
-                  , Mod    <$ char '%' ]
+arith_op :: Lexer UArithOp
+arith_op = choice [ UArithOp Plus     <$ char '+'
+                  , UArithOp Minus    <$ char '-'
+                  , UArithOp Times    <$ char '*'
+                  , UArithOp Divide   <$ char '/'
+                  , UArithOp Mod      <$ char '%'
+                  , UArithOp LessE    <$ try (text "<=")
+                  , UArithOp Less     <$ char '<'
+                  , UArithOp GreaterE <$ try (text ">=")
+                  , UArithOp Greater  <$ char '>'
+                  , UArithOp Equals   <$ try (text "==")]
 
 -- | Lex one alphanumeric token
 word_token :: Lexer Token
