@@ -29,15 +29,19 @@ import Text.Parser.Combinators as Parser
 
 import Text.PrettyPrint.HughesPJClass
 
+import Control.Error
+
 import Data.List as List
 import Data.Text as Text
 import Data.Typeable ( Typeable )
 
 import Control.Applicative
+import Control.Arrow as Arrow ( left )
 import Control.Monad.Reader
 
-parse :: [LToken] -> Either ParseError UExp
-parse tokens = runReader (runParserT (expr <* eof) () "" tokens) []
+parse :: Monad m => [LToken] -> EitherT String m UExp
+parse tokens = hoistEither $ Arrow.left show $
+               runReader (runParserT (expr <* eof) () "" tokens) []
 
 ----------------------
 -- Plumbing
@@ -78,7 +82,10 @@ next_pos _   _ (L pos _ : _) = pos
 expr :: Parser UExp
 expr = choice [ lam
               , cond
-              , term `chainl1` add_op ]
+              , int_exp `chainl1` bool_op ]
+
+int_exp :: Parser UExp
+int_exp = term `chainl1` add_op
 
 term :: Parser UExp
 term = apps `chainl1` mul_op
@@ -132,9 +139,10 @@ tycon = do
                text "type" <+> quotes (text (unpack n))
     Just tc -> return tc
 
-add_op, mul_op :: Parser (UExp -> UExp -> UExp)
+add_op, mul_op, bool_op :: Parser (UExp -> UExp -> UExp)
 add_op = mk_op <$> arith_op [uPlus, uMinus]
 mul_op = mk_op <$> arith_op [uTimes, uDivide, uMod]
+bool_op = mk_op <$> arith_op [uLess, uLessE, uGreater, uGreaterE, uEquals]
 
 mk_op :: UArithOp -> UExp -> UExp -> UExp
 mk_op op = \e1 e2 -> UArith e1 op e2

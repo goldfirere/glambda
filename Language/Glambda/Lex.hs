@@ -29,11 +29,14 @@ import Text.Parser.Char
 import Text.Parser.Combinators
 import Text.Parser.Token as Parser hiding ( symbolic )
 
+import Control.Error
+
 import Data.Functor
 import Data.Functor.Identity
 import Data.Text
 
 import Control.Applicative
+import Control.Arrow as Arrow
 import Data.Maybe
 
 type Lexer = Parsec Text ()
@@ -48,8 +51,8 @@ char_ = void . char
 
 ---------------------------------------------------
 -- | Lex some program text into a list of 'LToken's
-lex :: Text -> Either ParseError [LToken]
-lex = parse lexer ""
+lex :: Monad m => Text -> EitherT String m [LToken]
+lex = hoistEither . Arrow.left show . parse lexer ""
 
 -- | Overall lexer
 lexer :: Lexer [LToken]

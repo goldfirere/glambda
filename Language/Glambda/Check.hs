@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, DataKinds, PolyKinds, GADTs, RebindableSyntax #-}
+{-# LANGUAGE RankNTypes, DataKinds, PolyKinds, GADTs #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -12,95 +12,102 @@
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Check where
-
-import Prelude hiding ( (>>=), (>>), fail, return )
+module Language.Glambda.Check ( check ) where
 
 import Language.Glambda.Exp
+import Language.Glambda.Token
+import Language.Glambda.Type
 import Language.Glambda.Unchecked
 import Language.Glambda.Util
 
---import Control.Applicative
---import Control.Monad
+import Text.PrettyPrint.HughesPJClass
+
+import Control.Applicative
+import Control.Error
+import Control.Monad
+import Control.Monad.Trans
+import Control.Monad.Error
+import Data.Type.Equality
 
 ------------------------------------------------------
 -- Type-checker monad
-{-
+
 type TypeError = String
+type TypeT = EitherT TypeError
 
-data TcM a = TcError   TypeError
-           | TcSuccess a
+typeError :: Monad m => UExp -> Doc -> TypeT m a
+typeError e doc = throwError $ render $
+                  doc $$ text "in the expression" <+> quotes (pPrint e)
 
-instance Functor TcM where
-  fmap = liftM
+------------------------------------------------
+-- The typechecker
 
-instance Applicative TcM where
-  pure  = return
-  (<*>) = ap
-
-instance Monad TcM where
-  return = TcSuccess
-  fail   = TcError
-
-  TcError err >>= _ = TcError err
-  TcSuccess a >>= f = f a
-
-runTcM :: TcM a -> Either TypeError a
-runTcM (TcError err) = Left err
-runTcM (TcSuccess x) = Right x
--}
---------------------------------------------------
-
-newtype Cont r e = Cont { runCont :: (forall i. e i -> r) -> r }
-
-(>>=) :: Cont r a -> (forall i. a i -> Cont r b) -> Cont r b
-ma >>= fmb
-  = Cont $ \k -> runCont ma $ \a -> runCont (fmb a) k
-
-(>>) :: Cont r a -> Cont r b -> Cont r b
-ma >> mb
-  = Cont $ \k -> runCont ma $ \_ -> runCont mb k
-
-fail :: String -> Cont r a
-fail = undefined
-
-return :: e i -> Cont r e
-return x = Cont $ \k -> k x
-
-check :: UExp -> (forall t. Exp '[] t -> r) -> r
-check uexp k = runCont (go LZ uexp) k
+check :: Monad m => UExp -> (forall t. STy t -> Exp '[] t -> m r)
+      -> EitherT String m r
+check uexp k = go emptyContext uexp $ \ty expr -> lift (k ty expr)
   where
-    go :: Length ctx -> UExp -> Cont r (Exp ctx)
-    go len_ctx (UVar n) =
-      check_var len_ctx n >>= (\elem -> return (Var elem))
+    go :: Monad m
+       => SCtx ctx -> UExp -> (forall t. STy t -> Exp ctx t -> TypeT m r)
+       -> TypeT m r
 
-    check_var :: Length ctx -> Int -> Cont r (Elem ctx)
-    check_var = undefined
+    go ctx (UVar n) k
+      = check_var ctx n $ \ty elem ->
+        k ty (Var elem)
 
-{-
-check :: Length ctx -> UExp -> Either TypeError (Exists (Exp ctx))
-check len_ctx (UVar n) = do
-  E elem <- check_var len_ctx n
-  return (E $ Var elem)
+    go ctx (ULam ty body) k
+      = refineTy ty $ \arg_ty ->
+        go (arg_ty `SCons` ctx) body $ \res_ty body' ->
+        k (arg_ty `SArr` res_ty) (Lam body')
 
-check_var :: Length ctx -> Int -> Either TypeError (Exists (Elem ctx))
-check_var LZ _ = Left "unbound variable"
-check_var (LS _) 0 = Right (E EZ)
-check_var (LS ctx') n = do
-  E elem <- check_var ctx' (n-1)
-  return (E $ ES elem)
--}
-{-
-check :: UExp -> (forall t. Exp '[] t -> r) -> TcM r
-check uexp k = go LZ uexp $ return . k
-  where
-    go :: Length ctx -> UExp -> (forall t. Exp ctx t -> TcM r) -> TcM r
-    go len_ctx (UVar n) k = check_var len_ctx n $ \elem -> k (Var elem)
-    go len_ctx (ULam ty body) k = go (LS len_ctx) body $ \body' -> k (Lam body')
-    go len_ctx (UApp e1 e2) k = go len_ctx e1 $ \e1' -> go len_ctx e2 $ \e2' -> k (App e1' e2')
+    go ctx e@(UApp e1 e2) k
+      = go ctx e1 $ \ty1 e1' ->
+        go ctx e2 $ \ty2 e2' ->
+        case (ty1, ty2) of
+          (SArr arg_ty res_ty, arg_ty')
+            |  Just Refl <- arg_ty `eqSTy` arg_ty'
+            -> k res_ty (App e1' e2')
+          _ -> typeError e $
+               hang (text "Bad function application.")
+                  2 (vcat [ text "Function type:" <+> pPrint ty1
+                          , text "Argument type:" <+> pPrint ty2 ])
 
-    check_var :: Length ctx -> Int -> (forall t. Elem ctx t -> TcM r) -> TcM r
-    check_var LZ _ _ = fail "unbound variable"
-    check_var (LS _) 0 k = k EZ
-    check_var (LS l) n k = check_var l (n-1) $ \elem -> k (ES elem)
--}
+    go ctx e@(UArith e1 (UArithOp op) e2) k
+      = go ctx e1 $ \sty1 e1' ->
+        go ctx e2 $ \sty2 e2' ->
+        case (sty1, sty2) of
+          (STyCon SIntTc, STyCon SIntTc)
+            -> k sty (Arith e1' op e2')
+          _ -> typeError e $
+               hang (text "Bad arith operand(s).")
+                  2 (vcat [ text " Left-hand type:" <+> pPrint sty1
+                          , text "Right-hand type:" <+> pPrint sty2 ])
+
+    go ctx e@(UCond e1 e2 e3) k
+      = go ctx e1 $ \sty1 e1' ->
+        go ctx e2 $ \sty2 e2' ->
+        go ctx e3 $ \sty3 e3' ->
+        case sty1 of
+          STyCon SBoolTc
+            |  Just Refl <- sty2 `eqSTy` sty3
+            -> k sty2 (Cond e1' e2' e3')
+          _ -> typeError e $
+               hang (text "Bad conditional.")
+                  2 (vcat [ text "Flag type:" <+> pPrint sty1
+                          , quotes (text "true") <+> text "expression type:"
+                                                 <+> pPrint sty2
+                          , quotes (text "false") <+> text "expression type:"
+                                                  <+> pPrint sty3 ])
+
+    go _   (UIntE n)  k = k sty (IntE n)
+    go _   (UBoolE b) k = k sty (BoolE b)
+
+    check_var :: Monad m
+              => SCtx ctx -> Int
+              -> (forall t. STy t -> Elem ctx t -> TypeT m r)
+              -> TypeT m r
+    check_var SNil           _ _ = throwError "unbound variable"
+                                 -- shouldn't happen. caught by parser.
+
+    check_var (SCons ty _)   0 k = k ty EZ
+    check_var (SCons _  ctx) n k = check_var ctx (n-1) $ \ty elem ->
+                                   k ty (ES elem)

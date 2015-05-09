@@ -10,7 +10,9 @@ import Prelude hiding ( lex )
 
 import Data.Text as Text
 import Data.List as List
-import Control.Arrow ( right )
+import Control.Arrow as Arrow ( right )
+import Control.Error
+import Data.Functor.Identity
 
 import Test.Tasty
 import Test.Tasty.HUnit  ( testCase )
@@ -44,5 +46,7 @@ lexTestCases = [ ("", [])
 lexTests :: TestTree
 lexTests = testGroup "Lexer" $
   List.map (\(str, out) -> testCase ("`" ++ unpack str ++ "'") $
-                           right (List.map unLoc) (lex str) @?= Right out)
+                           Arrow.right (List.map unLoc)
+                                        (runIdentity $ runEitherT $
+                                         lex str) @?= Right out)
            lexTestCases

@@ -33,7 +33,7 @@ instance Pretty UExp where
   pPrintPrec _ = pPrint_exp
 
 pPrint_exp :: Prec -> UExp -> Doc
-pPrint_exp _    (UVar n)                     = int n
+pPrint_exp _    (UVar n)                     = char '#' <> int n
 pPrint_exp prec (ULam ty body)               = pPrintLam prec ty body
 pPrint_exp prec (UApp e1 e2)                 = pPrintApp prec e1 e2
 pPrint_exp prec (UArith e1 (UArithOp op) e2) = pPrintArith prec e1 op e2

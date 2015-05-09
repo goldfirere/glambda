@@ -61,20 +61,23 @@ pPrintLam prec ty body
     char '.' <+> ppr topPrec body
 
 -- | Print an application
-pPrintApp :: Pretty exp => Prec -> exp -> exp -> Doc
+pPrintApp :: (Pretty exp1, Pretty exp2)
+          => Prec -> exp1 -> exp2 -> Doc
 pPrintApp prec e1 e2
   = maybeParens (prec >= appPrec) $
     ppr appLeftPrec  e1 <+>
     ppr appRightPrec e2
 
-pPrintArith :: Pretty exp => Prec -> exp -> ArithOp ty -> exp -> Doc
+pPrintArith :: (Pretty exp1, Pretty exp2)
+            => Prec -> exp1 -> ArithOp ty -> exp2 -> Doc
 pPrintArith prec e1 op e2
   = maybeParens (prec >= opPrec op) $
     ppr (opLeftPrec op) e1 <+>
     pPrint op <+>
     ppr (opRightPrec op) e2
 
-pPrintIf :: Pretty exp => Prec -> exp -> exp -> exp -> Doc
+pPrintIf :: (Pretty exp1, Pretty exp2, Pretty exp3)
+         => Prec -> exp1 -> exp2 -> exp3 -> Doc
 pPrintIf prec e1 e2 e3
   = maybeParens (prec >= ifPrec) $
     hsep [ text "if", pPrint e1, text "then"

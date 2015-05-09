@@ -48,7 +48,7 @@ data ArithOp ty where
 -- | 'UArithOp' ("unchecked 'ArithOp') is an existential package for
 -- an 'ArithOp'
 data UArithOp where
-  UArithOp :: ArithOp ty -> UArithOp
+  UArithOp :: ITy ty => ArithOp ty -> UArithOp
   deriving Typeable
 
 uPlus, uMinus, uTimes, uDivide, uMod, uLess, uLessE, uGreater,
