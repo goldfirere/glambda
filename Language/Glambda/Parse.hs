@@ -33,7 +33,6 @@ import Control.Error
 
 import Data.List as List
 import Data.Text as Text
-import Data.Typeable ( Typeable )
 
 import Control.Applicative
 import Control.Arrow as Arrow ( left )
@@ -57,11 +56,11 @@ bind bound_var thing_inside
 
 -- | Parse the given nullary token
 tok :: Token -> Parser ()
-tok t = tok' (\_ -> t)
+tok t = tokenPrim (render . pPrint) next_pos (guard . (t ==) . unLoc)
 
 -- | Parse the given unary token
-tok' :: Typeable thing => (thing -> Token) -> Parser thing
-tok' t = tokenPrim (render . pPrint) next_pos (matchToken t . unLoc)
+tok' :: (Token -> Maybe thing) -> Parser thing
+tok' matcher = tokenPrim (render . pPrint) next_pos (matcher . unLoc)
 
 -- | Parse one of a set of 'ArithOp's
 arith_op :: [UArithOp] -> Parser UArithOp
@@ -95,14 +94,14 @@ apps = List.foldl1 UApp <$> some factor
 
 factor :: Parser UExp
 factor = choice [ between (tok LParen) (tok RParen) expr
-                , UIntE <$> tok' Integer
-                , UBoolE <$> tok' Bool
+                , UIntE <$> tok' unInteger
+                , UBoolE <$> tok' unBool
                 , var ]
 
 lam :: Parser UExp
 lam = do
   tok Lambda
-  bound_var <- tok' Name
+  bound_var <- tok' unName
   tok Colon
   typ <- ty
   tok Dot
@@ -114,7 +113,7 @@ cond = UCond <$ tok If <*> expr <* tok Then <*> expr <* tok Else <*> expr
 
 var :: Parser UExp
 var = do
-  n <- tok' Name
+  n <- tok' unName
   m_index <- asks (elemIndex n)
   case m_index of
     Nothing -> unexpected $ render $
@@ -133,7 +132,7 @@ arg_ty = choice [ between (tok LParen) (tok RParen) ty
 
 tycon :: Parser TyCon
 tycon = do
-  n <- tok' Name
+  n <- tok' unName
   case readTyCon n of
     Nothing -> unexpected $ render $
                text "type" <+> quotes (text (unpack n))

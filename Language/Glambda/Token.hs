@@ -1,5 +1,4 @@
-{-# LANGUAGE TupleSections, DeriveDataTypeable, GADTs,
-             StandaloneDeriving #-}
+{-# LANGUAGE TupleSections, GADTs, StandaloneDeriving #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -23,8 +22,7 @@ module Language.Glambda.Token (
   uGreater, uGreaterE, uEquals,
 
   -- * Tokens
-  Token(..), LToken(..),
-  matchToken, unLoc
+  Token(..), LToken(..), unLoc, unArithOp, unInteger, unBool, unName
   ) where
 
 import Language.Glambda.Type
@@ -36,20 +34,16 @@ import Text.Parsec.Pos ( SourcePos )
 
 import Data.List                      as List
 
-import Data.Typeable
-
 -- | An @ArithOp ty@ is an operator on numbers that produces a result
 -- of type @ty@
 data ArithOp ty where
   Plus, Minus, Times, Divide, Mod        :: ArithOp IntTy
   Less, LessE, Greater, GreaterE, Equals :: ArithOp BoolTy
-  deriving Typeable
 
 -- | 'UArithOp' ("unchecked 'ArithOp') is an existential package for
 -- an 'ArithOp'
 data UArithOp where
   UArithOp :: ITy ty => ArithOp ty -> UArithOp
-  deriving Typeable
 
 uPlus, uMinus, uTimes, uDivide, uMod, uLess, uLessE, uGreater,
   uGreaterE, uEquals :: UArithOp
@@ -102,34 +96,31 @@ data Token
   | Name Text
     deriving Eq
 
+-- | Perhaps extract a 'UArithOp'
+unArithOp :: Token -> Maybe UArithOp
+unArithOp (ArithOp x) = Just x
+unArithOp _           = Nothing
+
+-- | Perhaps extract an 'Integer'
+unInteger :: Token -> Maybe Integer
+unInteger (Integer x) = Just x
+unInteger _           = Nothing
+
+-- | Perhaps extract an 'Bool'
+unBool :: Token -> Maybe Bool
+unBool (Bool x) = Just x
+unBool _           = Nothing
+
+-- | Perhaps extract a 'Text'
+unName :: Token -> Maybe Text
+unName (Name x) = Just x
+unName _        = Nothing
+
 -- | A lexed token with location information attached
 data LToken = L SourcePos Token
 
 unLoc :: LToken -> Token
 unLoc (L _ t) = t
-
--- | Given a constructor and a token, extract the payload of that constructor,
--- if the token matches. For example, @matchToken Integer (Integer 3)@ produces
--- @Just 3@, but @matchToken (\_ -> LParen) RParen@ produces @Nothing@. Make
--- sure the function passed in is /lazy/!
-matchToken :: Typeable arg => (arg -> Token) -> Token -> Maybe arg
-matchToken fn t
-  = case (fn undefined, t) of
-      (LParen,    LParen)     -> cast ()
-      (RParen,    RParen)     -> cast ()
-      (Lambda,    Lambda)     -> cast ()
-      (Dot,       Dot)        -> cast ()
-      (Arrow,     Arrow)      -> cast ()
-      (Colon,     Colon)      -> cast ()
-      (ArithOp _, ArithOp op) -> cast op
-      (Integer _, Integer n)  -> cast n
-      (Bool _,    Bool b)     -> cast b
-      (If,        If)         -> cast ()
-      (Then,      Then)       -> cast ()
-      (Else,      Else)       -> cast ()
-      (Assign,    Assign)     -> cast ()
-      (Name _,    Name t)     -> cast t
-      _                       -> Nothing
 
 instance Pretty (ArithOp ty) where
   pPrint Plus     = char '+'
