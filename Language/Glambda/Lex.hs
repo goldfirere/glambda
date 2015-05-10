@@ -12,12 +12,13 @@
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Lex where
+module Language.Glambda.Lex ( lex ) where
 
 import Prelude hiding ( lex )
 
 import Language.Glambda.Token
 import Language.Glambda.Util
+import Language.Glambda.Monad
 
 import Text.Parsec.Token
 import Text.Parsec.Language
@@ -46,13 +47,10 @@ type Lexer = Parsec Text ()
 text_ :: Text -> Lexer ()
 text_ = void . text
 
-char_ :: Char -> Lexer ()
-char_ = void . char
-
 ---------------------------------------------------
 -- | Lex some program text into a list of 'LToken's
-lex :: Monad m => Text -> EitherT String m [LToken]
-lex = hoistEither . Arrow.left show . parse lexer ""
+lex :: Text -> GlamE [LToken]
+lex = eitherToGlamE . Arrow.left show . parse lexer ""
 
 -- | Overall lexer
 lexer :: Lexer [LToken]

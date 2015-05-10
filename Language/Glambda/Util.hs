@@ -13,7 +13,7 @@
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Util ( Exists(..), Prec, topPrec, whenM ) where
+module Language.Glambda.Util ( Prec, topPrec, whenM ) where
 
 import Text.Parsec
 import Text.PrettyPrint.HughesPJClass
@@ -23,10 +23,6 @@ import Control.Monad
 
 instance Pretty ParseError where
   pPrint = text . show
-
--- | A general-purpose existential wrapper
-data Exists t where
-  E :: t x -> Exists t
 
 -- | More perspicuous synonym for operator precedence
 type Prec = Rational

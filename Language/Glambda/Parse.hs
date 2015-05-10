@@ -9,17 +9,19 @@
 -- Stability   :  experimental
 --
 -- Parses tokens into the un-type-checked AST. "Parsing", in glambda,
--- also includes name resolution and macro expansion. This all might
+-- also includes name resolution. This all might
 -- conceivably be done in a later pass, but there doesn't seem to be
 -- an incentive to do so.
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Parse where
+module Language.Glambda.Parse ( parseStmt, parseExp ) where
 
 import Language.Glambda.Unchecked
+import Language.Glambda.Statement
 import Language.Glambda.Token
 import Language.Glambda.Type
+import Language.Glambda.Monad
 
 import Text.Parsec.Prim as Parsec   ( runParserT, ParsecT, tokenPrim )
 import Text.Parsec.Error            ( ParseError )
@@ -38,9 +40,16 @@ import Control.Applicative
 import Control.Arrow as Arrow ( left )
 import Control.Monad.Reader
 
-parse :: Monad m => [LToken] -> EitherT String m UExp
-parse tokens = hoistEither $ Arrow.left show $
-               runReader (runParserT (expr <* eof) () "" tokens) []
+parseStmt :: [LToken] -> GlamE Statement
+parseStmt = parse stmt
+
+parseExp :: [LToken] -> GlamE UExp
+parseExp = parse expr
+
+parse :: Parser a -> [LToken] -> GlamE a
+parse p tokens = eitherToGlamE $ Arrow.left show $
+                 runReader (runParserT (p <* eof) () "" tokens) []
+
 
 ----------------------
 -- Plumbing
@@ -77,6 +86,10 @@ next_pos _   _ (L pos _ : _) = pos
 
 --------------
 -- Real work
+
+stmt :: Parser Statement
+stmt = choice [ NewGlobal <$> tok' unName <*> expr
+              , BareExp <$> expr ]
 
 expr :: Parser UExp
 expr = choice [ lam

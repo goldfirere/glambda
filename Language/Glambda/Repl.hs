@@ -13,7 +13,7 @@
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Repl where
+module Language.Glambda.Repl ( main ) where
 
 import Prelude hiding ( lex )
 
@@ -23,68 +23,84 @@ import Language.Glambda.Lex
 import Language.Glambda.Parse
 import Language.Glambda.Unchecked
 import Language.Glambda.Util
+import Language.Glambda.Statement
+import Language.Glambda.Globals
+import Language.Glambda.Monad
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.HughesPJClass as Pretty
 
 import System.Console.Haskeline
 
 import Data.Text
-import Language.Haskell.TH.Syntax hiding ( report )
+import Language.Haskell.TH.Syntax as TH hiding ( report )
 import Control.Applicative
 import Control.Monad
 import Control.Error
+import Control.Monad.Error
+import Control.Monad.Reader
 import Data.Char
 import Data.List as List
 
-type Input = InputT IO
-
 main :: IO ()
-main = runInputT defaultSettings (helloWorld >> loop)
+main = runInputT defaultSettings $
+       runGlam $ do
+         helloWorld
+         loop
   where
+    loop :: Glam ()
     loop = do
-      m_line <- getInputLine "λ> "
+      m_line <- prompt "λ> "
       case List.dropWhile isSpace <$> m_line of
         Nothing -> void (quit "")
         Just (':' : cmd) -> whenM (runCommand cmd) loop
         Just expr        ->
-          do result <- runEitherT $ do
+          do result <- runGlamE $ do
                toks <- lex (pack expr)
-               uexp <- parse toks
-               check uexp $ \sty exp -> do
-                 outputStrLn $ render $
-                   pPrint (eval exp) <+> colon <+> pPrint sty
+               stmt <- parseStmt toks
+               case stmt of
+                 BareExp uexp -> check uexp $ \sty exp -> do
+                   printLine $ printWithType (eval exp) sty
+                   return id
+                 NewGlobal g uexp -> check uexp $ \sty exp -> do
+                   printLine $
+                     text (unpack g) <+> char '=' <+> printWithType exp sty
+                   return (extend g sty exp)
 
-             case result of
-               Right () -> return ()
-               Left err -> outputStrLn err
+             modify_globals <- case result of
+               Right gl -> return gl
+               Left err -> do
+                 printLine err
+                 return id
 
-             loop
+             local modify_globals loop
 
 -- | Prints welcome message
-helloWorld :: Input ()
+helloWorld :: Glam ()
 helloWorld = do
-  outputStr lambda
-  outputStrLn $ "Welcome to the Glamorous Glambda interpreter, version "
-                ++ version ++ "."
+  printLine lambda
+  printLine $ text "Welcome to the Glamorous Glambda interpreter, version" <+>
+              text version <> char '.'
 
 -- | The welcome message
-lambda :: String
+lambda :: Doc
 lambda
-  = "                   \\\\\\\\\\\\           \n" ++
-    "                    \\\\\\\\\\\\          \n" ++
-    "                 /-\\ \\\\\\\\\\\\        \n" ++
-    "                |   | \\\\\\\\\\\\        \n" ++
-    "                 \\-/|  \\\\\\\\\\\\      \n" ++
-    "                    | //\\\\\\\\\\\\      \n" ++
-    "                 \\-/ ////\\\\\\\\\\\\    \n" ++
-    "                    //////\\\\\\\\\\\\    \n" ++
-    "                   //////  \\\\\\\\\\\\   \n" ++
-    "                  //////    \\\\\\\\\\\\  \n"
+  = vcat $ List.map text
+    [ "                   \\\\\\\\\\\\          "
+    , "                    \\\\\\\\\\\\         "
+    , "                 /-\\ \\\\\\\\\\\\       "
+    , "                |   | \\\\\\\\\\\\       "
+    , "                 \\-/|  \\\\\\\\\\\\     "
+    , "                    | //\\\\\\\\\\\\     "
+    , "                 \\-/ ////\\\\\\\\\\\\   "
+    , "                    //////\\\\\\\\\\\\   "
+    , "                   //////  \\\\\\\\\\\\  "
+    , "                  //////    \\\\\\\\\\\\ "
+    ]
 
 -- | The current version of glambda
 version :: String
 version = $( do Loc { loc_package = pkg_string } <- location
-                lift $ case List.stripPrefix "glambda-" pkg_string of
+                TH.lift $ case List.stripPrefix "glambda-" pkg_string of
                   Just ver -> ver
                   Nothing  -> "?" )
 
@@ -93,20 +109,20 @@ version = $( do Loc { loc_package = pkg_string } <- location
 
 -- | Interpret a command (missing the initial ':'). Returns True when
 -- the REPL should continue
-runCommand :: String -> Input Bool
+runCommand :: String -> Glam Bool
 runCommand = dispatchCommand cmdTable
 
-type CommandTable = [(String, String -> Input Bool)]
+type CommandTable = [(String, String -> Glam Bool)]
 
-dispatchCommand :: CommandTable -> String -> Input Bool
+dispatchCommand :: CommandTable -> String -> Glam Bool
 dispatchCommand table line
   = case List.filter ((cmd `List.isPrefixOf`) . fst) table of
-      []            -> do outputStrLn $ "Unknown command: '" ++ cmd ++ "'"
+      []            -> do printLine $ text "Unknown command:" <+> quotes (text cmd)
                           return True
       [(_, action)] -> action arg
-      many          -> do outputStrLn $ "Ambiguous command: '" ++ cmd ++ "'"
-                          outputStrLn $ "Possibilities:"
-                          mapM_ (outputStrLn . ("  " ++) . fst) many
+      many          -> do printLine $ "Ambiguous command:" <+> quotes (text cmd)
+                          printLine $ hang (text "Possibilities:")
+                                         2 (vcat $ List.map (text . fst) many)
                           return True
   where (cmd, arg) = List.break isSpace line
 
@@ -119,65 +135,67 @@ cmdTable = [ ("quit",  quit)
            , ("type",  typeCmd)
            , ("all",   allCmd) ]
 
-quit :: String -> Input Bool
-quit _ = outputStrLn "Good-bye." >> return False
+quit :: String -> Glam Bool
+quit _ = do
+  printLine (text "Good-bye.")
+  return False
 
 class Reportable a where
-  report :: a -> Input ()
+  report :: a -> Glam ()
 
 instance Reportable Doc where
-  report = outputStrLn . render
+  report = printLine
 instance Reportable () where
   report = return
 instance Pretty a => Reportable a where
-  report = outputStrLn . render . pPrint
+  report = printLine . pPrint
 
-reportEitherT :: Reportable a => EitherT String Input a -> Input Bool
-reportEitherT thing_inside = do
-  result <- runEitherT thing_inside
+reportErrors :: Reportable a => GlamE a -> Glam Bool
+reportErrors thing_inside = do
+  result <- runGlamE thing_inside
   case result of
-    Left err      -> outputStrLn err
-    Right success -> report success
+    Left err -> printLine err
+    Right x  -> report x
   return True
 
-parseLex :: String -> EitherT String Input UExp
-parseLex = (parse <=< lex) . pack
+parseLex :: String -> GlamE UExp
+parseLex = (parseExp <=< lex) . pack
 
 printWithType :: (Pretty exp, Pretty ty) => exp -> ty -> Doc
 printWithType exp ty
   = pPrint exp <+> colon <+> pPrint ty
 
-lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd :: String -> Input Bool
-lexCmd expr = reportEitherT $ lex (pack expr)
-parseCmd = reportEitherT . parseLex
+lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd :: String -> Glam Bool
+lexCmd expr = reportErrors $ lex (pack expr)
+parseCmd = reportErrors . parseLex
 
-evalCmd expr = reportEitherT $ do
+evalCmd expr = reportErrors $ do
   uexp <- parseLex expr
   check uexp $ \sty exp ->
     return $ printWithType (eval exp) sty
 
-stepCmd expr = reportEitherT $ do
+stepCmd expr = reportErrors $ do
   uexp <- parseLex expr
   check uexp $ \sty exp -> do
-    outputStrLn $ render $ printWithType exp sty
+    printLine $ printWithType exp sty
     let loop e = case step e of
           Left e' -> do
-            outputStrLn $ render $ text "-->" <+> printWithType e' sty
+            printLine $ text "-->" <+> printWithType e' sty
             loop e'
           Right v -> return v
     v <- loop exp
     return $ printWithType v sty
 
-typeCmd expr = reportEitherT $ do
+typeCmd expr = reportErrors $ do
   uexp <- parseLex expr
   check uexp $ \sty exp -> return (printWithType exp sty)
 
 allCmd expr = do
-  outputStrLn "Small step:"
+  printLine (text "Small step:")
   _ <- stepCmd expr
 
-  outputStrLn ""
-  outputStrLn "Big step:"
+  printLine Pretty.empty
+  printLine (text "Big step:")
   _ <- evalCmd expr
 
   return True

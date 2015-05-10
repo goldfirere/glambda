@@ -45,7 +45,7 @@ parseTests = testGroup "Parser"
   [ testGroup "Success" $
     List.map (\(str, out) -> testCase ("`" ++ unpack str ++ "'") $
               (render $ pPrint (runIdentity (runEitherT (parse =<< lex str)))) @?=
-                ("Right (" ++ unpack out ++ ")"))
+                ("Right " ++ unpack out))
              parseTestCases
   , testGroup "Failure" $
     List.map (\str -> testCase ("`" ++ unpack str ++ "'") $

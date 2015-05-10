@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, DataKinds, PolyKinds, GADTs #-}
+{-# LANGUAGE RankNTypes, DataKinds, PolyKinds, GADTs, FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -19,6 +19,8 @@ import Language.Glambda.Token
 import Language.Glambda.Type
 import Language.Glambda.Unchecked
 import Language.Glambda.Util
+import Language.Glambda.Globals
+import Language.Glambda.Monad
 
 import Text.PrettyPrint.HughesPJClass
 
@@ -27,28 +29,25 @@ import Control.Error
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Error
+import Control.Monad.Reader
 import Data.Type.Equality
 
 ------------------------------------------------------
 -- Type-checker monad
 
-type TypeError = String
-type TypeT = EitherT TypeError
-
-typeError :: Monad m => UExp -> Doc -> TypeT m a
-typeError e doc = throwError $ render $
+typeError :: UExp -> Doc -> GlamE a
+typeError e doc = issueError $
                   doc $$ text "in the expression" <+> quotes (pPrint e)
 
 ------------------------------------------------
 -- The typechecker
 
-check :: Monad m => UExp -> (forall t. STy t -> Exp '[] t -> m r)
-      -> EitherT String m r
-check uexp k = go emptyContext uexp $ \ty expr -> lift (k ty expr)
+check :: UExp -> (forall t. STy t -> Exp '[] t -> GlamE r)
+      -> GlamE r
+check uexp k = go emptyContext uexp $ \ty expr -> k ty expr
   where
-    go :: Monad m
-       => SCtx ctx -> UExp -> (forall t. STy t -> Exp ctx t -> TypeT m r)
-       -> TypeT m r
+    go :: SCtx ctx -> UExp -> (forall t. STy t -> Exp ctx t -> GlamE r)
+       -> GlamE r
 
     go ctx (UVar n) k
       = check_var ctx n $ \ty elem ->
@@ -101,11 +100,10 @@ check uexp k = go emptyContext uexp $ \ty expr -> lift (k ty expr)
     go _   (UIntE n)  k = k sty (IntE n)
     go _   (UBoolE b) k = k sty (BoolE b)
 
-    check_var :: Monad m
-              => SCtx ctx -> Int
-              -> (forall t. STy t -> Elem ctx t -> TypeT m r)
-              -> TypeT m r
-    check_var SNil           _ _ = throwError "unbound variable"
+    check_var :: SCtx ctx -> Int
+              -> (forall t. STy t -> Elem ctx t -> GlamE r)
+              -> GlamE r
+    check_var SNil           _ _ = issueError (text "unbound variable")
                                  -- shouldn't happen. caught by parser.
 
     check_var (SCons ty _)   0 k = k ty EZ
