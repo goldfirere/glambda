@@ -15,7 +15,7 @@
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Parse ( parseStmt, parseExp ) where
+module Language.Glambda.Parse ( parseStmtG, parseExpG, parseStmt, parseExp ) where
 
 import Language.Glambda.Unchecked
 import Language.Glambda.Statement
@@ -40,16 +40,25 @@ import Control.Applicative
 import Control.Arrow as Arrow ( left )
 import Control.Monad.Reader
 
-parseStmt :: [LToken] -> GlamE Statement
+-- | Parse a 'Statement', aborting with an error upon failure
+parseStmtG :: [LToken] -> GlamE Statement
+parseStmtG = eitherToGlamE . parseStmt
+
+-- | Parse a 'Statement'
+parseStmt :: [LToken] -> Either String Statement
 parseStmt = parse stmt
 
-parseExp :: [LToken] -> GlamE UExp
+-- | Parse a 'UExp', aborting with an error upon failure
+parseExpG :: [LToken] -> GlamE UExp
+parseExpG = eitherToGlamE . parseExp
+
+-- | Parse a 'UExp'
+parseExp :: [LToken] -> Either String UExp
 parseExp = parse expr
 
-parse :: Parser a -> [LToken] -> GlamE a
-parse p tokens = eitherToGlamE $ Arrow.left show $
+parse :: Parser a -> [LToken] -> Either String a
+parse p tokens = Arrow.left show $
                  runReader (runParserT (p <* eof) () "" tokens) []
-
 
 ----------------------
 -- Plumbing

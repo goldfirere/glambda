@@ -19,6 +19,7 @@ import Text.PrettyPrint.HughesPJClass
 import Data.Functor.Identity
 import Data.Maybe
 import Data.List as List
+import Control.Arrow as Arrow
 
 import Test.Tasty
 import Test.Tasty.HUnit
@@ -50,8 +51,8 @@ checkTests :: TestTree
 checkTests = testGroup "Typechecker" $
   List.map (\(expr_str, m_result) ->
                testCase ("`" ++ unpack expr_str ++ "'") $
-               (case runIdentity $ runEitherT $ do
-                       uexp <- parse =<< lex expr_str
+               (case do
+                       uexp <- Arrow.left text $ parseExp =<< lex expr_str
                        check uexp $ \sty exp -> return $
                          case m_result of
                            Just result

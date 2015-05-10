@@ -12,7 +12,7 @@
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Lex ( lex ) where
+module Language.Glambda.Lex ( lexG, lex ) where
 
 import Prelude hiding ( lex )
 
@@ -48,9 +48,13 @@ text_ :: Text -> Lexer ()
 text_ = void . text
 
 ---------------------------------------------------
+-- | Lex some program text into a list of 'LToken's, aborting upon failure
+lexG :: Text -> GlamE [LToken]
+lexG = eitherToGlamE . lex
+
 -- | Lex some program text into a list of 'LToken's
-lex :: Text -> GlamE [LToken]
-lex = eitherToGlamE . Arrow.left show . parse lexer ""
+lex :: Text -> Either String [LToken]
+lex = Arrow.left show . parse lexer ""
 
 -- | Overall lexer
 lexer :: Lexer [LToken]

@@ -55,8 +55,8 @@ main = runInputT defaultSettings $
         Just (':' : cmd) -> whenM (runCommand cmd) loop
         Just expr        ->
           do result <- runGlamE $ do
-               toks <- lex (pack expr)
-               stmt <- parseStmt toks
+               toks <- lexG (pack expr)
+               stmt <- parseStmtG toks
                case stmt of
                  BareExp uexp -> check uexp $ \sty exp -> do
                    printLine $ printWithType (eval exp) sty
@@ -159,14 +159,14 @@ reportErrors thing_inside = do
   return True
 
 parseLex :: String -> GlamE UExp
-parseLex = (parseExp <=< lex) . pack
+parseLex = (parseExpG <=< lexG) . pack
 
 printWithType :: (Pretty exp, Pretty ty) => exp -> ty -> Doc
 printWithType exp ty
   = pPrint exp <+> colon <+> pPrint ty
 
 lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd :: String -> Glam Bool
-lexCmd expr = reportErrors $ lex (pack expr)
+lexCmd expr = reportErrors $ lexG (pack expr)
 parseCmd = reportErrors . parseLex
 
 evalCmd expr = reportErrors $ do

@@ -47,6 +47,5 @@ lexTests :: TestTree
 lexTests = testGroup "Lexer" $
   List.map (\(str, out) -> testCase ("`" ++ unpack str ++ "'") $
                            Arrow.right (List.map unLoc)
-                                        (runIdentity $ runEitherT $
-                                         lex str) @?= Right out)
+                                        (lex str) @?= Right out)
            lexTestCases

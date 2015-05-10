@@ -8,7 +8,7 @@
 -- Maintainer  :  Richard Eisenberg (eir@cis.upenn.edu)
 -- Stability   :  experimental
 --
--- The glambda typechecker
+-- The glambda typechecker.
 --
 ----------------------------------------------------------------------------
 
@@ -32,22 +32,26 @@ import Control.Monad.Error
 import Control.Monad.Reader
 import Data.Type.Equality
 
-------------------------------------------------------
--- Type-checker monad
-
-typeError :: UExp -> Doc -> GlamE a
-typeError e doc = issueError $
+-- | Abort with a type error in the given expression
+typeError :: MonadError Doc m => UExp -> Doc -> m a
+typeError e doc = throwError $
                   doc $$ text "in the expression" <+> quotes (pPrint e)
 
 ------------------------------------------------
 -- The typechecker
 
-check :: UExp -> (forall t. STy t -> Exp '[] t -> GlamE r)
-      -> GlamE r
-check uexp k = go emptyContext uexp $ \ty expr -> k ty expr
+-- | Check the given expression, aborting on type errors. The resulting
+-- type and checked expression is given to the provided continuation.
+-- This is parameterized over the choice of monad in order to support
+-- pure operation during testing.
+check :: MonadError Doc m
+      => UExp -> (forall t. STy t -> Exp '[] t -> m r)
+      -> m r
+check = go emptyContext
   where
-    go :: SCtx ctx -> UExp -> (forall t. STy t -> Exp ctx t -> GlamE r)
-       -> GlamE r
+    go :: MonadError Doc m
+       => SCtx ctx -> UExp -> (forall t. STy t -> Exp ctx t -> m r)
+       -> m r
 
     go ctx (UVar n) k
       = check_var ctx n $ \ty elem ->
@@ -100,10 +104,11 @@ check uexp k = go emptyContext uexp $ \ty expr -> k ty expr
     go _   (UIntE n)  k = k sty (IntE n)
     go _   (UBoolE b) k = k sty (BoolE b)
 
-    check_var :: SCtx ctx -> Int
-              -> (forall t. STy t -> Elem ctx t -> GlamE r)
-              -> GlamE r
-    check_var SNil           _ _ = issueError (text "unbound variable")
+    check_var :: MonadError Doc m
+              => SCtx ctx -> Int
+              -> (forall t. STy t -> Elem ctx t -> m r)
+              -> m r
+    check_var SNil           _ _ = throwError (text "unbound variable")
                                  -- shouldn't happen. caught by parser.
 
     check_var (SCons ty _)   0 k = k ty EZ
