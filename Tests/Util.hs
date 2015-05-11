@@ -16,19 +16,20 @@ module Tests.Util (
   (@?=), (@=?) )
   where
 
+import Language.Glambda.Util
+
 import Test.Tasty
 import Test.Tasty.HUnit ( testCase, (@?), Assertion )
 
-import Text.PrettyPrint.HughesPJ
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 import Text.Parsec ( ParseError )
 
 import Data.Function
 
 prettyError :: Pretty a => a -> a -> String
-prettyError exp act = (render $ text "Expected" <+> quotes (pPrint exp) <> semi <+>
-                                text "got" <+> quotes (pPrint act))
+prettyError exp act = (render $ text "Expected" <+> squotes (pretty exp) <> semi <+>
+                                text "got" <+> squotes (pretty act))
 
 (@?=) :: (Eq a, Pretty a) => a -> a -> Assertion
 act @?= exp = (act == exp) @? prettyError exp act
@@ -38,3 +39,7 @@ exp @=? act = (act == exp) @? prettyError exp act
 
 instance Eq ParseError where
   (==) = (==) `on` show
+
+instance (Pretty a, Pretty b) => Pretty (Either a b) where
+  pretty (Left x)  = text "Left" <+> pretty x
+  pretty (Right x) = text "Right" <+> pretty x

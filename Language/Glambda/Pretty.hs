@@ -1,4 +1,5 @@
-{-# LANGUAGE ViewPatterns, GADTs #-}
+{-# LANGUAGE ViewPatterns, GADTs, FlexibleInstances, UndecidableInstances,
+             OverlappingInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -14,14 +15,14 @@
 ----------------------------------------------------------------------------
 
 module Language.Glambda.Pretty (
-  pPrintLam, pPrintApp, pPrintArith, pPrintIf
+  PrettyExp(..), prettyLam, prettyApp, prettyArith, prettyIf
   ) where
 
 import Language.Glambda.Token
 import Language.Glambda.Type
 import Language.Glambda.Util
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 lamPrec, appPrec, appLeftPrec, appRightPrec, ifPrec :: Prec
 lamPrec = 1
@@ -48,37 +49,39 @@ precInfo Greater  = (4, 4, 4)
 precInfo GreaterE = (4, 4, 4)
 precInfo Equals   = (4, 4, 4)
 
--- | Useful shorthand for @pPrintPrec prettyNormal@
-ppr :: Pretty exp => Prec -> exp -> Doc
-ppr = pPrintPrec prettyNormal
+class Pretty exp => PrettyExp exp where
+  prettyPrec :: Prec -> exp -> Doc
+
+instance PrettyExp exp => Pretty exp where
+  pretty = prettyPrec topPrec
 
 -- | Print a lambda expression
-pPrintLam :: Pretty exp => Prec -> Ty -> exp -> Doc
-pPrintLam prec ty body
+prettyLam :: PrettyExp exp => Prec -> Ty -> exp -> Doc
+prettyLam prec ty body
   = maybeParens (prec >= lamPrec) $
     char 'λ' <>
-    char '#' <> text ":" <> pPrint ty <>
-    char '.' <+> ppr topPrec body
+    char '#' <> text ":" <> pretty ty <>
+    char '.' <+> prettyPrec topPrec body
 
 -- | Print an application
-pPrintApp :: (Pretty exp1, Pretty exp2)
+prettyApp :: (PrettyExp exp1, PrettyExp exp2)
           => Prec -> exp1 -> exp2 -> Doc
-pPrintApp prec e1 e2
+prettyApp prec e1 e2
   = maybeParens (prec >= appPrec) $
-    ppr appLeftPrec  e1 <+>
-    ppr appRightPrec e2
+    prettyPrec appLeftPrec  e1 <+>
+    prettyPrec appRightPrec e2
 
-pPrintArith :: (Pretty exp1, Pretty exp2)
+prettyArith :: (PrettyExp exp1, PrettyExp exp2)
             => Prec -> exp1 -> ArithOp ty -> exp2 -> Doc
-pPrintArith prec e1 op e2
+prettyArith prec e1 op e2
   = maybeParens (prec >= opPrec op) $
-    ppr (opLeftPrec op) e1 <+>
-    pPrint op <+>
-    ppr (opRightPrec op) e2
+    prettyPrec (opLeftPrec op) e1 <+>
+    pretty op <+>
+    prettyPrec (opRightPrec op) e2
 
-pPrintIf :: (Pretty exp1, Pretty exp2, Pretty exp3)
+prettyIf :: (PrettyExp exp1, PrettyExp exp2, PrettyExp exp3)
          => Prec -> exp1 -> exp2 -> exp3 -> Doc
-pPrintIf prec e1 e2 e3
+prettyIf prec e1 e2 e3
   = maybeParens (prec >= ifPrec) $
-    hsep [ text "if", pPrint e1, text "then"
-         , pPrint e2, text "else", pPrint e3 ]
+    hsep [ text "if", pretty e1, text "then"
+         , pretty e2, text "else", pretty e3 ]

@@ -23,7 +23,7 @@ import Language.Glambda.Util
 import Language.Glambda.Globals
 import Language.Glambda.Monad
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 import Control.Applicative
 import Control.Error
@@ -36,7 +36,7 @@ import Data.Type.Equality
 -- | Abort with a type error in the given expression
 typeError :: MonadError Doc m => UExp -> Doc -> m a
 typeError e doc = throwError $
-                  doc $$ text "in the expression" <+> quotes (pPrint e)
+                  doc $$ text "in the expression" <+> squotes (pretty e)
 
 ------------------------------------------------
 -- The typechecker
@@ -76,9 +76,9 @@ check = go emptyContext
             |  Just Refl <- arg_ty `eqSTy` arg_ty'
             -> k res_ty (App e1' e2')
           _ -> typeError e $
-               hang (text "Bad function application.")
-                  2 (vcat [ text "Function type:" <+> pPrint ty1
-                          , text "Argument type:" <+> pPrint ty2 ])
+               text "Bad function application." $$
+               hang 2 (vcat [ text "Function type:" <+> pretty ty1
+                            , text "Argument type:" <+> pretty ty2 ])
 
     go ctx e@(UArith e1 (UArithOp op) e2) k
       = go ctx e1 $ \sty1 e1' ->
@@ -87,9 +87,9 @@ check = go emptyContext
           (STyCon SIntTc, STyCon SIntTc)
             -> k sty (Arith e1' op e2')
           _ -> typeError e $
-               hang (text "Bad arith operand(s).")
-                  2 (vcat [ text " Left-hand type:" <+> pPrint sty1
-                          , text "Right-hand type:" <+> pPrint sty2 ])
+               text "Bad arith operand(s)." $$
+               hang 2 (vcat [ text " Left-hand type:" <+> pretty sty1
+                            , text "Right-hand type:" <+> pretty sty2 ])
 
     go ctx e@(UCond e1 e2 e3) k
       = go ctx e1 $ \sty1 e1' ->
@@ -100,12 +100,12 @@ check = go emptyContext
             |  Just Refl <- sty2 `eqSTy` sty3
             -> k sty2 (Cond e1' e2' e3')
           _ -> typeError e $
-               hang (text "Bad conditional.")
-                  2 (vcat [ text "Flag type:" <+> pPrint sty1
-                          , quotes (text "true") <+> text "expression type:"
-                                                 <+> pPrint sty2
-                          , quotes (text "false") <+> text "expression type:"
-                                                  <+> pPrint sty3 ])
+               text "Bad conditional." $$
+               hang 2 (vcat [ text "Flag type:" <+> pretty sty1
+                            , squotes (text "true") <+> text "expression type:"
+                                                    <+> pretty sty2
+                            , squotes (text "false") <+> text "expression type:"
+                                                     <+> pretty sty3 ])
 
     go _   (UIntE n)  k = k sty (IntE n)
     go _   (UBoolE b) k = k sty (BoolE b)

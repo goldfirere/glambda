@@ -25,7 +25,7 @@ module Language.Glambda.Type (
 
 import Language.Glambda.Util
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 import Data.Type.Equality
 import Data.Text
 
@@ -125,29 +125,29 @@ eqSTy _ _ = Nothing
 -- Pretty-printing
 
 instance Pretty TyCon where
-  pPrint IntTc  = text "Int"
-  pPrint BoolTc = text "Bool"
+  pretty IntTc  = text "Int"
+  pretty BoolTc = text "Bool"
 
 instance Show TyCon where
-  show = render . pPrint
+  show = render . pretty
 
 instance Pretty Ty where
-  pPrint = pPrint_ty topPrec
+  pretty = pretty_ty topPrec
 
 instance Show Ty where
-  show = render . pPrint
+  show = render . pretty
 
 instance Pretty (STy ty) where
-  pPrint = pPrint . unrefineTy
+  pretty = pretty . unrefineTy
 
 arrowLeftPrec, arrowRightPrec, arrowPrec :: Prec
 arrowLeftPrec  = 5
 arrowRightPrec = 4.9
 arrowPrec      = 5
 
-pPrint_ty :: Prec -> Ty -> Doc
-pPrint_ty prec (Arr arg res) = maybeParens (prec >= arrowPrec) $
-                               hsep [ pPrint_ty arrowLeftPrec arg
+pretty_ty :: Prec -> Ty -> Doc
+pretty_ty prec (Arr arg res) = maybeParens (prec >= arrowPrec) $
+                               hsep [ pretty_ty arrowLeftPrec arg
                                     , text "->"
-                                    , pPrint_ty arrowRightPrec res ]
-pPrint_ty _ (TyCon tc) = pPrint tc
+                                    , pretty_ty arrowRightPrec res ]
+pretty_ty _ (TyCon tc) = pretty tc

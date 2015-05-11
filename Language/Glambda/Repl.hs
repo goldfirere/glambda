@@ -27,7 +27,7 @@ import Language.Glambda.Statement
 import Language.Glambda.Globals
 import Language.Glambda.Monad
 
-import Text.PrettyPrint.HughesPJClass as Pretty
+import Text.PrettyPrint.ANSI.Leijen as Pretty hiding ( (<$>) )
 
 import System.Console.Haskeline
 
@@ -117,12 +117,12 @@ type CommandTable = [(String, String -> Glam Bool)]
 dispatchCommand :: CommandTable -> String -> Glam Bool
 dispatchCommand table line
   = case List.filter ((cmd `List.isPrefixOf`) . fst) table of
-      []            -> do printLine $ text "Unknown command:" <+> quotes (text cmd)
+      []            -> do printLine $ text "Unknown command:" <+> squotes (text cmd)
                           return True
       [(_, action)] -> action arg
-      many          -> do printLine $ "Ambiguous command:" <+> quotes (text cmd)
-                          printLine $ hang (text "Possibilities:")
-                                         2 (vcat $ List.map (text . fst) many)
+      many          -> do printLine $ "Ambiguous command:" <+> squotes (text cmd)
+                          printLine $ text "Possibilities:" $$
+                                      hang 2 (vcat $ List.map (text . fst) many)
                           return True
   where (cmd, arg) = List.break isSpace line
 
@@ -148,7 +148,7 @@ instance Reportable Doc where
 instance Reportable () where
   report = return
 instance Pretty a => Reportable a where
-  report = printLine . pPrint
+  report = printLine . pretty
 
 reportErrors :: Reportable a => GlamE a -> Glam Bool
 reportErrors thing_inside = do
@@ -163,7 +163,7 @@ parseLex = (parseExpG <=< lexG) . pack
 
 printWithType :: (Pretty exp, Pretty ty) => exp -> ty -> Doc
 printWithType exp ty
-  = pPrint exp <+> colon <+> pPrint ty
+  = pretty exp <+> colon <+> pretty ty
 
 lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd :: String -> Glam Bool
 lexCmd expr = reportErrors $ lexG (pack expr)

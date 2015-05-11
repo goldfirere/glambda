@@ -5,11 +5,12 @@ module Tests.Parse where
 import Language.Glambda.Lex
 import Language.Glambda.Parse
 import Language.Glambda.Token
+import Language.Glambda.Util
 import Tests.Util
 
 import Prelude hiding ( lex )
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 import Data.Text as Text
 import Data.List as List
@@ -33,19 +34,19 @@ parseTestCases = [ ("\\x:Int.x", "λ#:Int. #0")
                  , ("\\x:Int->Int.\\y:Int.x y", "λ#:Int -> Int. λ#:Int. #1 #0")
                  , ("if 3 - 1 == 2 then \\x:Int.x else \\x:Int.3",
                     "if 3 - 1 == 2 then λ#:Int. #0 else λ#:Int. 3")
+                 , ("\\x:Int.y", "λ#:Int. y")
                  ]
 
 parserFailTestCases :: [Text]
-parserFailTestCases = [ "\\x:Int.y"
-                      , " {- "
+parserFailTestCases = [ " {- "
                       , "{-{- -}" ]
 
 parseTests :: TestTree
 parseTests = testGroup "Parser"
   [ testGroup "Success" $
     List.map (\(str, out) -> testCase ("`" ++ unpack str ++ "'") $
-              (render $ pPrint (parseExp =<< lex str)) @?=
-                ("Right (" ++ unpack out ++ ")"))
+              (render $ pretty (parseExp =<< lex str)) @?=
+                ("Right " ++ unpack out))
              parseTestCases
   , testGroup "Failure" $
     List.map (\str -> testCase ("`" ++ unpack str ++ "'") $

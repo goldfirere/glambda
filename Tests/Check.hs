@@ -11,12 +11,13 @@ import Language.Glambda.Check
 import Language.Glambda.Type
 import Language.Glambda.Eval
 import Language.Glambda.Globals
+import Language.Glambda.Util
 
 import Control.Error
 import Control.Monad.Reader
 
 import Data.Text
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 import Data.Functor.Identity
 import Data.Maybe
@@ -59,8 +60,8 @@ checkTests = testGroup "Typechecker" $
                        check uexp $ \sty exp -> return $
                          case m_result of
                            Just result
-                             -> (render (pPrint exp), unrefineTy sty,
-                                 render (pPrint (eval exp)))
+                             -> (render (pretty exp), unrefineTy sty,
+                                 render (pretty (eval exp)))
                                  @?= result
                            _ -> assertFailure "unexpected type-check success"
                   of

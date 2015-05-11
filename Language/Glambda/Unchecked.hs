@@ -17,7 +17,7 @@ import Language.Glambda.Type
 import Language.Glambda.Token
 import Language.Glambda.Util
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 import Data.Text
 
 -- | Unchecked expression
@@ -31,16 +31,16 @@ data UExp
   | UIntE Integer
   | UBoolE Bool
 
-instance Pretty UExp where
-  pPrintPrec _ = pPrint_exp
+instance PrettyExp UExp where
+  prettyPrec = pretty_exp
 
-pPrint_exp :: Prec -> UExp -> Doc
-pPrint_exp _    (UVar n)                     = char '#' <> int n
-pPrint_exp _    (UGlobal n)                  = text (unpack n)
-pPrint_exp prec (ULam ty body)               = pPrintLam prec ty body
-pPrint_exp prec (UApp e1 e2)                 = pPrintApp prec e1 e2
-pPrint_exp prec (UArith e1 (UArithOp op) e2) = pPrintArith prec e1 op e2
-pPrint_exp prec (UCond e1 e2 e3)             = pPrintIf prec e1 e2 e3
-pPrint_exp _    (UIntE n)                    = integer n
-pPrint_exp _    (UBoolE True)                = text "true"
-pPrint_exp _    (UBoolE False)               = text "false"
+pretty_exp :: Prec -> UExp -> Doc
+pretty_exp _    (UVar n)                     = char '#' <> int n
+pretty_exp _    (UGlobal n)                  = text (unpack n)
+pretty_exp prec (ULam ty body)               = prettyLam prec ty body
+pretty_exp prec (UApp e1 e2)                 = prettyApp prec e1 e2
+pretty_exp prec (UArith e1 (UArithOp op) e2) = prettyArith prec e1 op e2
+pretty_exp prec (UCond e1 e2 e3)             = prettyIf prec e1 e2 e3
+pretty_exp _    (UIntE n)                    = integer n
+pretty_exp _    (UBoolE True)                = text "true"
+pretty_exp _    (UBoolE False)               = text "false"

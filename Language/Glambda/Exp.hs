@@ -23,7 +23,7 @@ import Language.Glambda.Token
 import Language.Glambda.Type
 import Language.Glambda.Util
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 -- | @Elem xs x@ is evidence that @x@ is in the list @xs@.
 data Elem :: [a] -> a -> * where
@@ -80,19 +80,19 @@ eqExp _ _ = False
 ----------------------------------------------------
 -- Pretty-printing
 
-instance Pretty (Exp ctx ty) where
-  pPrintPrec _ = pPrint_exp
+instance PrettyExp (Exp ctx ty) where
+  prettyPrec = pretty_exp
 
-instance Pretty (Val ctx ty) where
-  pPrintPrec lev prec v = pPrintPrec lev prec (val v)
+instance PrettyExp (Val ctx ty) where
+  prettyPrec prec v = prettyPrec prec (val v)
 
-pPrint_exp :: Prec -> Exp ctx ty -> Doc
-pPrint_exp _    (Var n)                     = char '#' <> int (elemToInt n)
-pPrint_exp prec (Lam (body :: Exp (arg ': rest) ty))
-  = pPrintLam prec (unrefineTy (sty :: STy arg)) body
-pPrint_exp prec (App e1 e2)                 = pPrintApp prec e1 e2
-pPrint_exp prec (Arith e1 op e2)            = pPrintArith prec e1 op e2
-pPrint_exp prec (Cond e1 e2 e3)             = pPrintIf prec e1 e2 e3
-pPrint_exp _    (IntE n)                    = integer n
-pPrint_exp _    (BoolE True)                = text "true"
-pPrint_exp _    (BoolE False)               = text "false"
+pretty_exp :: Prec -> Exp ctx ty -> Doc
+pretty_exp _    (Var n)                     = char '#' <> int (elemToInt n)
+pretty_exp prec (Lam (body :: Exp (arg ': rest) ty))
+  = prettyLam prec (unrefineTy (sty :: STy arg)) body
+pretty_exp prec (App e1 e2)                 = prettyApp prec e1 e2
+pretty_exp prec (Arith e1 op e2)            = prettyArith prec e1 op e2
+pretty_exp prec (Cond e1 e2 e3)             = prettyIf prec e1 e2 e3
+pretty_exp _    (IntE n)                    = integer n
+pretty_exp _    (BoolE True)                = text "true"
+pretty_exp _    (BoolE False)               = text "false"

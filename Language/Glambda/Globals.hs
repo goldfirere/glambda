@@ -21,7 +21,7 @@ import Language.Glambda.Type
 import Control.Error
 import Control.Monad.Error
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 import Data.Map as Map
 import Data.Text
@@ -55,4 +55,4 @@ lookupGlobal (Globals globals) var k
       Just (EExp sty exp) -> k sty exp
       Nothing             -> throwError $
                              text "Global variable not in scope:" <+>
-                               quotes (text $ unpack var)
+                               squotes (text $ unpack var)

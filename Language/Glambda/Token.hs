@@ -26,10 +26,10 @@ module Language.Glambda.Token (
   ) where
 
 import Language.Glambda.Type
+import Language.Glambda.Util
 
 import Data.Text                      as Text
-import Text.PrettyPrint.HughesPJ      as Pretty
-import Text.PrettyPrint.HughesPJClass as Pretty
+import Text.PrettyPrint.ANSI.Leijen  as Pretty
 import Text.Parsec.Pos ( SourcePos )
 
 import Data.List                      as List
@@ -123,39 +123,39 @@ unLoc :: LToken -> Token
 unLoc (L _ t) = t
 
 instance Pretty (ArithOp ty) where
-  pPrint Plus     = char '+'
-  pPrint Minus    = char '-'
-  pPrint Times    = char '*'
-  pPrint Divide   = char '/'
-  pPrint Mod      = char '%'
-  pPrint Less     = char '<'
-  pPrint LessE    = text "<="
-  pPrint Greater  = char '>'
-  pPrint GreaterE = text ">="
-  pPrint Equals   = text "=="
+  pretty Plus     = char '+'
+  pretty Minus    = char '-'
+  pretty Times    = char '*'
+  pretty Divide   = char '/'
+  pretty Mod      = char '%'
+  pretty Less     = char '<'
+  pretty LessE    = text "<="
+  pretty Greater  = char '>'
+  pretty GreaterE = text ">="
+  pretty Equals   = text "=="
 
 instance Show (ArithOp ty) where
-  show = render . pPrint
+  show = render . pretty
 
 instance Pretty UArithOp where
-  pPrint (UArithOp op) = pPrint op
+  pretty (UArithOp op) = pretty op
 
 instance Show UArithOp where
-  show = render . pPrint
+  show = render . pretty
 
 instance Pretty Token where
-  pPrint       = getDoc . printingInfo
-  pPrintList _ = printTogether . List.map printingInfo
+  pretty     = getDoc . printingInfo
+  prettyList = printTogether . List.map printingInfo
 
 instance Show Token where
-  show = render . pPrint
+  show = render . pretty
 
 instance Pretty LToken where
-  pPrint       = pPrint . unLoc
-  pPrintList p = pPrintList p . List.map unLoc
+  pretty     = pretty . unLoc
+  prettyList = prettyList . List.map unLoc
 
 instance Show LToken where
-  show = render . pPrint
+  show = render . pretty
 
 type PrintingInfo = (Doc, Bool, Bool)
    -- the bools say whether or not to include a space before or a space after
@@ -173,7 +173,7 @@ printingInfo Lambda       = (char '\\', True, False)
 printingInfo Dot          = (char '.', False, True)
 printingInfo Arrow        = alone $ text "->"
 printingInfo Colon        = (char ':', False, False)
-printingInfo (ArithOp a)  = alone $ pPrint a
+printingInfo (ArithOp a)  = alone $ pretty a
 printingInfo (Integer i)  = alone $ integer i
 printingInfo (Bool True)  = alone $ text "true"
 printingInfo (Bool False) = alone $ text "false"

@@ -20,15 +20,17 @@ module Language.Glambda.Monad (
   ) where
 
 import Language.Glambda.Globals
+import Language.Glambda.Util
 
 import System.Console.Haskeline
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 import Control.Error
 import Control.Monad.Error
 import Control.Monad.Reader
 import Control.Applicative
+import System.IO
 
 -- | A monad giving Haskeline-like interaction and access to 'Globals'
 newtype Glam a = Glam { unGlam :: ReaderT Globals (InputT IO) a }
@@ -47,8 +49,8 @@ class MonadReader Globals m => GlamM m where
   printLine :: Doc -> m ()
 
 instance GlamM Glam where
-  printDoc = Glam . lift . outputStr . render
-  printLine = Glam . lift . outputStrLn . render
+  printDoc = Glam . liftIO . displayIO stdout . toSimpleDoc
+  printLine = Glam . liftIO . displayIO stdout . toSimpleDoc . (<> hardline)
 
 instance GlamM GlamE where
   printDoc = GlamE . lift . printDoc

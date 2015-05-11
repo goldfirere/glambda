@@ -22,6 +22,7 @@ import Language.Glambda.Statement
 import Language.Glambda.Token
 import Language.Glambda.Type
 import Language.Glambda.Monad
+import Language.Glambda.Util
 
 import Text.Parsec.Prim as Parsec   ( runParserT, ParsecT, tokenPrim )
 import Text.Parsec.Error            ( ParseError )
@@ -29,7 +30,7 @@ import Text.Parsec.Pos
 
 import Text.Parser.Combinators as Parser
 
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen hiding ( (<$>) )
 
 import Control.Error
 
@@ -74,15 +75,15 @@ bind bound_var thing_inside
 
 -- | Parse the given nullary token
 tok :: Token -> Parser ()
-tok t = tokenPrim (render . pPrint) next_pos (guard . (t ==) . unLoc)
+tok t = tokenPrim (render . pretty) next_pos (guard . (t ==) . unLoc)
 
 -- | Parse the given unary token
 tok' :: (Token -> Maybe thing) -> Parser thing
-tok' matcher = tokenPrim (render . pPrint) next_pos (matcher . unLoc)
+tok' matcher = tokenPrim (render . pretty) next_pos (matcher . unLoc)
 
 -- | Parse one of a set of 'ArithOp's
 arith_op :: [UArithOp] -> Parser UArithOp
-arith_op ops = tokenPrim (render . pPrint) next_pos
+arith_op ops = tokenPrim (render . pretty) next_pos
                          (\case L _ (ArithOp op) | op `elem` ops -> Just op
                                 _                                -> Nothing)
 
@@ -153,7 +154,7 @@ tycon = do
   n <- tok' unName
   case readTyCon n of
     Nothing -> unexpected $ render $
-               text "type" <+> quotes (text (unpack n))
+               text "type" <+> squotes (text (unpack n))
     Just tc -> return tc
 
 add_op, mul_op, bool_op :: Parser (UExp -> UExp -> UExp)

@@ -16,7 +16,7 @@ module Language.Glambda.Statement ( Statement(..) ) where
 import Language.Glambda.Unchecked
 
 import Data.Text
-import Text.PrettyPrint.HughesPJClass
+import Text.PrettyPrint.ANSI.Leijen
 
 -- | A statement can either be a bare expression, which will be evaluated,
 -- or an assignment to a global variable.
@@ -24,5 +24,5 @@ data Statement = BareExp UExp
                | NewGlobal Text UExp
 
 instance Pretty Statement where
-  pPrint (BareExp exp)     = pPrint exp
-  pPrint (NewGlobal v exp) = text (unpack v) <+> char '=' <+> pPrint exp
+  pretty (BareExp exp)     = pretty exp
+  pretty (NewGlobal v exp) = text (unpack v) <+> char '=' <+> pretty exp
