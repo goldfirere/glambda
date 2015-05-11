@@ -39,25 +39,12 @@ newtype GlamE a = GlamE { unGlamE :: EitherT Doc Glam a }
   deriving (Monad, Functor, Applicative, MonadReader Globals, MonadError Doc)
 
 -- | Class for the two glamorous monads
-class GlamM m where
+class MonadReader Globals m => GlamM m where
   -- | Print a 'Doc' without a newline at the end
   printDoc :: Doc -> m ()
 
   -- | Print a 'Doc' with a newline
   printLine :: Doc -> m ()
-
-  -- | Retrieve the 'Globals' that are in scope
-  globals  :: m Globals
-
-  -- | Modify the 'Globals' that are in scope
-  modifyGlobals :: (Globals -> Globals) -> m a -> m a
-
-  default globals :: MonadReader Globals m => m Globals
-  globals = ask
-
-  default modifyGlobals :: MonadReader Globals m
-                        => (Globals -> Globals) -> m a -> m a
-  modifyGlobals = local
 
 instance GlamM Glam where
   printDoc = Glam . lift . outputStr . render

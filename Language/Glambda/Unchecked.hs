@@ -18,10 +18,12 @@ import Language.Glambda.Token
 import Language.Glambda.Util
 
 import Text.PrettyPrint.HughesPJClass
+import Data.Text
 
 -- | Unchecked expression
 data UExp
   = UVar Int   -- ^ de Bruijn index for a variable
+  | UGlobal Text
   | ULam Ty UExp
   | UApp UExp UExp
   | UArith UExp UArithOp UExp
@@ -34,6 +36,7 @@ instance Pretty UExp where
 
 pPrint_exp :: Prec -> UExp -> Doc
 pPrint_exp _    (UVar n)                     = char '#' <> int n
+pPrint_exp _    (UGlobal n)                  = text (unpack n)
 pPrint_exp prec (ULam ty body)               = pPrintLam prec ty body
 pPrint_exp prec (UApp e1 e2)                 = pPrintApp prec e1 e2
 pPrint_exp prec (UArith e1 (UArithOp op) e2) = pPrintArith prec e1 op e2

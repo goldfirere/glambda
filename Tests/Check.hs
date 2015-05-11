@@ -10,8 +10,10 @@ import Language.Glambda.Lex
 import Language.Glambda.Check
 import Language.Glambda.Type
 import Language.Glambda.Eval
+import Language.Glambda.Globals
 
 import Control.Error
+import Control.Monad.Reader
 
 import Data.Text
 import Text.PrettyPrint.HughesPJClass
@@ -45,14 +47,15 @@ checkTestCases = [ ("1", Just ("1", intTy, "1"))
                  , ("1 < 2", Just ("1 < 2", boolTy, "true"))
                  , ("1 < 1", Just ("1 < 1", boolTy, "false"))
                  , ("1 <= 1", Just ("1 <= 1", boolTy, "true"))
+                 , ("id_int (id_int 5)", Just ("(λ#:Int. #0) ((λ#:Int. #0) 5)", intTy, "5"))
                  ]
 
 checkTests :: TestTree
 checkTests = testGroup "Typechecker" $
   List.map (\(expr_str, m_result) ->
                testCase ("`" ++ unpack expr_str ++ "'") $
-               (case do
-                       uexp <- Arrow.left text $ parseExp =<< lex expr_str
+               (case flip runReader id_globals $ runEitherT $ do
+                       uexp <- hoistEither $ Arrow.left text $ parseExp =<< lex expr_str
                        check uexp $ \sty exp -> return $
                          case m_result of
                            Just result
@@ -63,3 +66,6 @@ checkTests = testGroup "Typechecker" $
                   of
                   Left _  -> assertBool "unexpected failure" (isNothing m_result)
                   Right b -> b)) checkTestCases
+
+id_globals :: Globals
+id_globals = extend "id_int" (sIntTy `SArr` sIntTy) (Lam (Var EZ)) emptyGlobals

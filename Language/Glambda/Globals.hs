@@ -46,13 +46,13 @@ extend var sty exp (Globals globals)
 
 -- | Lookup a global variable. Fails with 'throwError' if the variable
 -- is not bound.
-lookupGlobal :: MonadError String m
+lookupGlobal :: MonadError Doc m
              => Globals -> Text
              -> (forall ty. STy ty -> Exp '[] ty -> m r)
              -> m r
 lookupGlobal (Globals globals) var k
   = case Map.lookup var globals of
       Just (EExp sty exp) -> k sty exp
-      Nothing             -> throwError $ render $
+      Nothing             -> throwError $
                              text "Global variable not in scope:" <+>
                                quotes (text $ unpack var)

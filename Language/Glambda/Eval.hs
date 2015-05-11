@@ -14,7 +14,7 @@
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Eval ( eval, step, stepVal ) where
+module Language.Glambda.Eval ( eval, step, stepVal, shift ) where
 
 import Language.Glambda.Exp
 import Language.Glambda.Token
@@ -32,6 +32,9 @@ type family xs ++ ys where
   (x ': xs) ++ ys = x ': (xs ++ ys)
 infixr 5 ++
 
+-- | Convert an expression typed in one context to one typed in a larger
+-- context. Operationally, this amounts to de Bruijn index shifting.
+-- As a proposition, this is the weakening lemma.
 shift :: forall ts2 t ty. Exp ts2 ty -> Exp (t ': ts2) ty
 shift = go LZ
   where

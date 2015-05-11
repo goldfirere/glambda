@@ -20,7 +20,7 @@ module Language.Glambda.Type (
   -- * Glambda types to be used in Haskell types
   STyCon(..), STy(..), SCtx(..), ITy(..),
   emptyContext, refineTy, unrefineTy, eqSTy,
-  IntTy, BoolTy
+  IntTy, BoolTy, sIntTy, sBoolTy
   ) where
 
 import Language.Glambda.Util
@@ -58,12 +58,20 @@ type IntTy  = 'TyCon 'IntTc
 intTy :: Ty
 intTy = TyCon IntTc
 
+-- | Convenient synonym for "Int"
+sIntTy :: STy IntTy
+sIntTy = STyCon SIntTc
+
 -- | Convenient synonym for "Bool"
 type BoolTy = 'TyCon 'BoolTc
 
 -- | Convenient synonym for "Bool"
 boolTy :: Ty
 boolTy = TyCon BoolTc
+
+-- | Convenient synonym for "Bool"
+sBoolTy :: STy BoolTy
+sBoolTy = STyCon SBoolTc
 
 -- | Singleton for a glambda type
 data STy :: Ty -> * where

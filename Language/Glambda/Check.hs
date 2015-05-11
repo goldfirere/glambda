@@ -15,6 +15,7 @@
 module Language.Glambda.Check ( check ) where
 
 import Language.Glambda.Exp
+import Language.Glambda.Eval
 import Language.Glambda.Token
 import Language.Glambda.Type
 import Language.Glambda.Unchecked
@@ -44,18 +45,23 @@ typeError e doc = throwError $
 -- type and checked expression is given to the provided continuation.
 -- This is parameterized over the choice of monad in order to support
 -- pure operation during testing.
-check :: MonadError Doc m
+check :: (MonadError Doc m, MonadReader Globals m)
       => UExp -> (forall t. STy t -> Exp '[] t -> m r)
       -> m r
 check = go emptyContext
   where
-    go :: MonadError Doc m
+    go :: (MonadError Doc m, MonadReader Globals m)
        => SCtx ctx -> UExp -> (forall t. STy t -> Exp ctx t -> m r)
        -> m r
 
     go ctx (UVar n) k
       = check_var ctx n $ \ty elem ->
         k ty (Var elem)
+
+    go ctx (UGlobal n) k
+      = do globals <- ask
+           lookupGlobal globals n $ \ty exp ->
+             k ty (shift_into_ctx ctx exp)
 
     go ctx (ULam ty body) k
       = refineTy ty $ \arg_ty ->
@@ -104,13 +110,20 @@ check = go emptyContext
     go _   (UIntE n)  k = k sty (IntE n)
     go _   (UBoolE b) k = k sty (BoolE b)
 
-    check_var :: MonadError Doc m
-              => SCtx ctx -> Int
-              -> (forall t. STy t -> Elem ctx t -> m r)
-              -> m r
-    check_var SNil           _ _ = throwError (text "unbound variable")
-                                 -- shouldn't happen. caught by parser.
+check_var :: MonadError Doc m
+          => SCtx ctx -> Int
+          -> (forall t. STy t -> Elem ctx t -> m r)
+          -> m r
+check_var SNil           _ _ = throwError (text "unbound variable")
+                             -- shouldn't happen. caught by parser.
 
-    check_var (SCons ty _)   0 k = k ty EZ
-    check_var (SCons _  ctx) n k = check_var ctx (n-1) $ \ty elem ->
-                                   k ty (ES elem)
+-- | Type-check a de Bruijn index variable
+check_var (SCons ty _)   0 k = k ty EZ
+check_var (SCons _  ctx) n k = check_var ctx (n-1) $ \ty elem ->
+                               k ty (ES elem)
+
+-- | Take a closed expression and shift its indices to make sense in
+-- a non-empty context.
+shift_into_ctx :: SCtx ctx -> Exp '[] ty -> Exp ctx ty
+shift_into_ctx SNil             exp = exp
+shift_into_ctx (_ `SCons` ctx') exp = shift $ shift_into_ctx ctx' exp

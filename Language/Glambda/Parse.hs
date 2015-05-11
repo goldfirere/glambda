@@ -97,7 +97,7 @@ next_pos _   _ (L pos _ : _) = pos
 -- Real work
 
 stmt :: Parser Statement
-stmt = choice [ NewGlobal <$> tok' unName <*> expr
+stmt = choice [ try $ NewGlobal <$> tok' unName <* tok Assign <*> expr
               , BareExp <$> expr ]
 
 expr :: Parser UExp
@@ -138,11 +138,7 @@ var = do
   n <- tok' unName
   m_index <- asks (elemIndex n)
   case m_index of
-    Nothing -> unexpected $ render $
-               sep [ text "identifier" <+> ppr_n <> semi
-                   , ppr_n <+> text "is not bound." ]
-      where
-        ppr_n = quotes (text (unpack n))
+    Nothing -> return (UGlobal n)
     Just i  -> return (UVar i)
 
 ty :: Parser Ty
