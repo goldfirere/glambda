@@ -45,7 +45,7 @@ elemToInt (ES e) = 1 + elemToInt e
 -- variable.
 data Exp :: [Ty] -> Ty -> * where
   Var :: Elem ctx ty -> Exp ctx ty
-  Lam :: ITy arg => Exp (arg ': ctx) res -> Exp ctx (arg '`Arr` res)
+  Lam :: Exp (arg ': ctx) res -> Exp ctx (arg '`Arr` res)
   App :: Exp ctx (arg '`Arr` res) -> Exp ctx arg -> Exp ctx res
   Arith :: Exp ctx IntTy -> ArithOp ty -> Exp ctx IntTy -> Exp ctx ty
   Cond :: Exp ctx BoolTy -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
@@ -56,7 +56,7 @@ data Exp :: [Ty] -> Ty -> * where
 data Val :: [Ty] -> Ty -> * where
   IntVal  :: Integer -> Val ctx IntTy
   BoolVal :: Bool -> Val ctx BoolTy
-  LamVal  :: ITy arg => Exp (arg ': ctx) res -> Val ctx (arg '`Arr` res)
+  LamVal  :: Exp (arg ': ctx) res -> Val ctx (arg '`Arr` res)
 
 -- | Inject a value back into an expression
 val :: Val ctx ty -> Exp ctx ty
@@ -88,12 +88,11 @@ instance PrettyExp (Val ctx ty) where
   prettyExp coloring prec v = prettyExp coloring prec (val v)
 
 pretty_exp :: Coloring -> Prec -> Exp ctx ty -> Doc
-pretty_exp c _    (Var n)                     = prettyVar c (elemToInt n)
-pretty_exp c prec (Lam (body :: Exp (arg ': rest) ty))
-  = prettyLam c prec (unrefineTy (sty :: STy arg)) body
-pretty_exp c prec (App e1 e2)                 = prettyApp c prec e1 e2
-pretty_exp c prec (Arith e1 op e2)            = prettyArith c prec e1 op e2
-pretty_exp c prec (Cond e1 e2 e3)             = prettyIf c prec e1 e2 e3
-pretty_exp _ _    (IntE n)                    = integer n
-pretty_exp _ _    (BoolE True)                = text "true"
-pretty_exp _ _    (BoolE False)               = text "false"
+pretty_exp c _    (Var n)          = prettyVar c (elemToInt n)
+pretty_exp c prec (Lam body)       = prettyLam c prec Nothing body
+pretty_exp c prec (App e1 e2)      = prettyApp c prec e1 e2
+pretty_exp c prec (Arith e1 op e2) = prettyArith c prec e1 op e2
+pretty_exp c prec (Cond e1 e2 e3)  = prettyIf c prec e1 e2 e3
+pretty_exp _ _    (IntE n)         = integer n
+pretty_exp _ _    (BoolE True)     = text "true"
+pretty_exp _ _    (BoolE False)    = text "false"

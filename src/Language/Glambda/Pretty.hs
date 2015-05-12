@@ -86,11 +86,11 @@ prettyVar :: Coloring -> Int -> Doc
 prettyVar (Coloring _ bound) n = (bound List.!! n) (char '#' <> int n)
 
 -- | Print a lambda expression
-prettyLam :: PrettyExp exp => Coloring -> Prec -> Ty -> exp -> Doc
-prettyLam (Coloring (next `Cons` supply) existing) prec ty body
+prettyLam :: PrettyExp exp => Coloring -> Prec -> Maybe Ty -> exp -> Doc
+prettyLam (Coloring (next `Cons` supply) existing) prec m_ty body
   = maybeParens (prec >= lamPrec) $
     char 'λ' <>
-    next (char '#') <> text ":" <> pretty ty <>
+    next (char '#') <> maybe empty (\ty -> text ":" <> pretty ty) m_ty <>
     char '.' <+> prettyExp (Coloring supply (next : existing)) topPrec body
 
 -- | Print an application

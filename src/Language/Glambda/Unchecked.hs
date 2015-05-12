@@ -37,7 +37,7 @@ instance PrettyExp UExp where
 pretty_exp :: Coloring -> Prec -> UExp -> Doc
 pretty_exp c _    (UVar n)                     = prettyVar c n
 pretty_exp _ _    (UGlobal n)                  = text (unpack n)
-pretty_exp c prec (ULam ty body)               = prettyLam c prec ty body
+pretty_exp c prec (ULam ty body)               = prettyLam c prec (Just ty) body
 pretty_exp c prec (UApp e1 e2)                 = prettyApp c prec e1 e2
 pretty_exp c prec (UArith e1 (UArithOp op) e2) = prettyArith c prec e1 op e2
 pretty_exp c prec (UCond e1 e2 e3)             = prettyIf c prec e1 e2 e3

@@ -99,7 +99,7 @@ infixr 5 `SCons`
 emptyContext :: SCtx '[]
 emptyContext = SNil
 
-refineTy :: Ty -> (forall ty. ITy ty => STy ty -> r) -> r
+refineTy :: Ty -> (forall ty. STy ty -> r) -> r
 refineTy (ty1 `Arr` ty2) k
   = refineTy ty1 $ \sty1 ->
     refineTy ty2 $ \sty2 ->
