@@ -52,6 +52,7 @@ library
                       Language.Glambda.Unchecked
                       Language.Glambda.Util
 
+  hs-source-dirs:     src
   ghc-options:        -Wall -fno-warn-name-shadowing
   default-language:   Haskell2010
 
@@ -66,7 +67,7 @@ executable glam
 
 test-suite tests
   type:               exitcode-stdio-1.0
-  hs-source-dirs:     testing
+  hs-source-dirs:     tests
   ghc-options:        -Wall -fno-warn-name-shadowing -main-is Tests.Main
   default-language:   Haskell2010
   main-is:            Tests/Main.hs
