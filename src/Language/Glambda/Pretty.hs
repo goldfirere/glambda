@@ -63,6 +63,7 @@ precInfo Equals   = (4, 4, 4)
 -- | A function that changes a 'Doc's color
 type ApplyColor = Doc -> Doc
 
+-- | Information about coloring in de Bruijn indexes and binders
 data Coloring = Coloring (Stream ApplyColor)
                          [ApplyColor]  -- ^ a stream of remaining colors to use,
                                        -- and the colors used for bound variables
@@ -101,6 +102,7 @@ prettyApp coloring prec e1 e2
     prettyExp coloring appLeftPrec  e1 <+>
     prettyExp coloring appRightPrec e2
 
+-- | Print an arithemtic expression
 prettyArith :: (PrettyExp exp1, PrettyExp exp2)
             => Coloring -> Prec -> exp1 -> ArithOp ty -> exp2 -> Doc
 prettyArith coloring prec e1 op e2
@@ -109,6 +111,7 @@ prettyArith coloring prec e1 op e2
     pretty op <+>
     prettyExp coloring (opRightPrec op) e2
 
+-- | Print a conditional
 prettyIf :: (PrettyExp exp1, PrettyExp exp2, PrettyExp exp3)
          => Coloring -> Prec -> exp1 -> exp2 -> exp3 -> Doc
 prettyIf coloring prec e1 e2 e3

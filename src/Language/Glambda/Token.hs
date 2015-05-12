@@ -17,7 +17,7 @@ module Language.Glambda.Token (
   -- * Arithmetic operators
   ArithOp(..), UArithOp(..), eqArithOp,
 
-  -- ** unchecked synonyms for arithmetic operators
+  -- ** Unchecked synonyms for arithmetic operators
   uPlus, uMinus, uTimes, uDivide, uMod, uLess, uLessE,
   uGreater, uGreaterE, uEquals,
 
@@ -40,7 +40,7 @@ data ArithOp ty where
   Plus, Minus, Times, Divide, Mod        :: ArithOp IntTy
   Less, LessE, Greater, GreaterE, Equals :: ArithOp BoolTy
 
--- | 'UArithOp' ("unchecked 'ArithOp') is an existential package for
+-- | 'UArithOp' ("unchecked 'ArithOp'") is an existential package for
 -- an 'ArithOp'
 data UArithOp where
   UArithOp :: ITy ty => ArithOp ty -> UArithOp
@@ -119,6 +119,7 @@ unName _        = Nothing
 -- | A lexed token with location information attached
 data LToken = L SourcePos Token
 
+-- | Remove location information from an 'LToken'
 unLoc :: LToken -> Token
 unLoc (L _ t) = t
 

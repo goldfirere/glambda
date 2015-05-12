@@ -9,7 +9,9 @@
 -- Maintainer  :  Richard Eisenberg (eir@cis.upenn.edu)
 -- Stability   :  experimental
 --
--- Utility exports (and re-exports) for glambda.
+-- Utility exports (and re-exports) for glambda. This module is meant to
+-- be internal -- do not import it if you are not part of the glambda
+-- package!
 --
 ----------------------------------------------------------------------------
 
@@ -48,7 +50,7 @@ maybeParens :: Bool -> Doc -> Doc
 maybeParens True  = parens
 maybeParens False = id
 
--- | Synonym for Pretty.<$>
+-- | Synonym for 'Pretty.<$>'
 ($$) :: Doc -> Doc -> Doc
 ($$) = (Pretty.<$>)
 

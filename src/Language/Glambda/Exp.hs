@@ -65,7 +65,7 @@ val (BoolVal n) = BoolE n
 val (LamVal body) = Lam body
 
 ----------------------------------------------------
--- Equality on expressions
+-- | Equality on expressions
 eqExp :: Exp ctx1 ty1 -> Exp ctx2 ty2 -> Bool
 eqExp (Var e1) (Var e2) = elemToInt e1 == elemToInt e2
 eqExp (Lam body1) (Lam body2) = body1 `eqExp` body2

@@ -45,6 +45,7 @@ import Data.List as List
 import Control.Applicative
 #endif
 
+-- | The glamorous Glambda interpreter
 main :: IO ()
 main = runInputT defaultSettings $
        runGlam $ do

@@ -58,8 +58,8 @@ instance GlamM GlamE where
   printDoc = GlamE . lift . printDoc
   printLine = GlamE . lift . printLine
 
--- | Prompt the user for input, returning a string if one is entered
--- Like 'getInputLine'
+-- | Prompt the user for input, returning a string if one is entered.
+-- Like 'getInputLine'.
 prompt :: String -> Glam (Maybe String)
 prompt = Glam . lift . getInputLine
 

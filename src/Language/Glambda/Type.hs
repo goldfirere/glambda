@@ -96,9 +96,11 @@ data SCtx :: [Ty] -> * where
   SCons :: STy h -> SCtx t -> SCtx (h ': t)
 infixr 5 `SCons`
 
+-- | The singleton for the empty context
 emptyContext :: SCtx '[]
 emptyContext = SNil
 
+-- | Convert a 'Ty' into an 'STy'.
 refineTy :: Ty -> (forall ty. STy ty -> r) -> r
 refineTy (ty1 `Arr` ty2) k
   = refineTy ty1 $ \sty1 ->
@@ -107,11 +109,13 @@ refineTy (ty1 `Arr` ty2) k
 refineTy (TyCon IntTc)  k = k (STyCon SIntTc)
 refineTy (TyCon BoolTc) k = k (STyCon SBoolTc)
 
+-- | Convert an 'STy' into a 'Ty'
 unrefineTy :: STy ty -> Ty
 unrefineTy (arg `SArr` res) = unrefineTy arg `Arr` unrefineTy res
 unrefineTy (STyCon SIntTc)  = TyCon IntTc
 unrefineTy (STyCon SBoolTc) = TyCon BoolTc
 
+-- | Compare two 'STy's for equality.
 eqSTy :: STy ty1 -> STy ty2 -> Maybe (ty1 :~: ty2)
 eqSTy (s1 `SArr` t1) (s2 `SArr` t2)
   | Just Refl <- s1 `eqSTy` s2
