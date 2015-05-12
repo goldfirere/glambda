@@ -10,22 +10,23 @@
 -- Maintainer  :  Richard Eisenberg (eir@cis.upenn.edu)
 -- Stability   :  experimental
 --
--- Glambda expression evaluators for both checked and unchecked expressions.
+-- Glambda expression evaluators for checked expressions.
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Eval ( eval, step, stepVal, shift ) where
+module Language.Glambda.Eval ( eval, step, shift ) where
 
 import Language.Glambda.Exp
 import Language.Glambda.Token
 import Language.Glambda.Type
 
 -- | @Length xs@ tells you how long a list @xs@ is.
+-- @LZ :: Length xs@ says that @xs@ is empty.
+-- @LS len :: Length xs@ tells you that @xs@ has one more element
+-- than @len@ says.
 data Length :: [a] -> * where
-  LZ :: Length '[]   -- ^ @LZ :: Length xs@ says that @xs@ is empty
+  LZ :: Length '[]
   LS :: Length xs -> Length (x ': xs)
-    -- ^ @LS len :: Length xs@ tells you that @xs@ has one more element
-    -- than @len@ says
 
 type family xs ++ ys where
   '[]       ++ ys = ys
@@ -74,7 +75,7 @@ subst e = go LZ
     subst_var (LS _) EZ       = Var EZ
     subst_var (LS len) (ES v) = shift (subst_var len v)
 
-apply :: Val '[] (arg `Arr` res) -> Exp '[] arg -> Exp '[] res
+apply :: Val '[] (arg '`Arr` res) -> Exp '[] arg -> Exp '[] res
 apply (LamVal body) arg = subst arg body
 
 arith :: Val '[] IntTy -> ArithOp ty -> Val '[] IntTy -> Val '[] ty
@@ -93,6 +94,7 @@ cond :: Val '[] BoolTy -> Exp '[] t -> Exp '[] t -> Exp '[] t
 cond (BoolVal True)  e _ = e
 cond (BoolVal False) _ e = e
 
+-- | Evaluate an expression, using big-step semantics.
 eval :: Exp '[] t -> Val '[] t
 eval (Var v) = case v of {}
 eval (Lam body) = LamVal body
@@ -102,6 +104,7 @@ eval (Cond e1 e2 e3) = eval (cond (eval e1) e2 e3)
 eval (IntE n) = IntVal n
 eval (BoolE b) = BoolVal b
 
+-- | Step an expression, either to another expression or to a value.
 step :: Exp '[] t -> Either (Exp '[] t) (Val '[] t)
 step (Var v) = case v of {}
 step (Lam body) = Right (LamVal body)
@@ -118,8 +121,3 @@ step (Cond e1 e2 e3) = case step e1 of
   Right v1 -> Left (cond v1 e2 e3)
 step (IntE n) = Right (IntVal n)
 step (BoolE b) = Right (BoolVal b)
-
-stepVal :: Exp '[] t -> Val '[] t
-stepVal e = case step e of
-  Left e' -> stepVal e'
-  Right v -> v

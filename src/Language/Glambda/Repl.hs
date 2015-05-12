@@ -1,5 +1,9 @@
 {-# LANGUAGE OverloadedStrings, FlexibleInstances,
-             UndecidableInstances, OverlappingInstances #-}
+             UndecidableInstances, CPP #-}
+#if __GLASGOW_HASKELL__ < 709
+{-# LANGUAGE OverlappingInstances #-}
+{-# OPTIONS_GHC -fno-warn-unrecognised-pragmas #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -32,11 +36,14 @@ import Text.PrettyPrint.ANSI.Leijen as Pretty hiding ( (<$>) )
 import System.Console.Haskeline
 
 import Data.Text
-import Control.Applicative
 import Control.Monad
 import Control.Monad.Reader
 import Data.Char
 import Data.List as List
+
+#if __GLASGOW_HASKELL__ < 709
+import Control.Applicative
+#endif
 
 main :: IO ()
 main = runInputT defaultSettings $
@@ -141,7 +148,7 @@ instance Reportable Doc where
   report = printLine
 instance Reportable () where
   report = return
-instance Pretty a => Reportable a where
+instance {-# OVERLAPPABLE #-} Pretty a => Reportable a where
   report = printLine . pretty
 
 reportErrors :: Reportable a => GlamE a -> Glam Bool

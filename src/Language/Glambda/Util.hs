@@ -1,5 +1,5 @@
 {-# LANGUAGE GADTs, PolyKinds #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -15,13 +15,15 @@
 
 module Language.Glambda.Util (
   render, toSimpleDoc, maybeParens, ($$),
-  Prec, topPrec, whenM
+  Prec, topPrec, whenM,
+  MonadError(..)
   ) where
 
 import Text.Parsec
 import Text.PrettyPrint.ANSI.Leijen as Pretty
 
 import Control.Monad
+import Control.Monad.Error
 
 instance Pretty ParseError where
   pretty = text . show

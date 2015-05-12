@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -----------------------------------------------------------------------------
@@ -28,6 +29,7 @@ import Text.PrettyPrint.ANSI.Leijen
 import Text.Parsec ( ParseError )
 
 import Data.Function
+import Language.Haskell.TH
 
 prettyError :: Pretty a => a -> a -> String
 prettyError exp act = (render $ text "Expected" <+> squotes (pretty exp) <> semi <+>
@@ -39,8 +41,11 @@ act @?= exp = (act == exp) @? prettyError exp act
 (@=?) :: (Eq a, Pretty a) => a -> a -> Assertion
 exp @=? act = (act == exp) @? prettyError exp act
 
-instance Eq ParseError where
-  (==) = (==) `on` show
+$( do decs <- reifyInstances ''Eq [ConT ''ParseError]
+      case decs of
+        [] -> [d| instance Eq ParseError where
+                    (==) = (==) `on` show |]
+        _  -> return [] )
 
 instance (Pretty a, Pretty b) => Pretty (Either a b) where
   pretty (Left x)  = text "Left" <+> pretty x

@@ -17,8 +17,7 @@ module Language.Glambda.Globals (
 
 import Language.Glambda.Exp
 import Language.Glambda.Type
-
-import Control.Monad.Error
+import Language.Glambda.Util
 
 import Text.PrettyPrint.ANSI.Leijen
 

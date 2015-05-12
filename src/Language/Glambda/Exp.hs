@@ -26,12 +26,13 @@ import Language.Glambda.Util
 import Text.PrettyPrint.ANSI.Leijen
 
 -- | @Elem xs x@ is evidence that @x@ is in the list @xs@.
+-- @EZ :: Elem xs x@ is evidence that @x@ is the first element of @xs@.
+-- @ES ev :: Elem xs x@ is evidence that @x@ is one position later in
+-- @xs@ than is indicated in @ev@
 data Elem :: [a] -> a -> * where
   EZ :: Elem (x ': xs) x
-    -- ^ @EZ :: Elem xs x@ is evidence that @x@ is the first element of @xs@
   ES :: Elem xs x -> Elem (y ': xs) x
-    -- ^ @ES ev :: Elem xs x@ is evidence that @x@ is one position later in
-    -- @xs@ than is indicated in @ev@
+
 
 -- | Convert an 'Elem' to a proper deBruijn index
 elemToInt :: Elem ctx ty -> Int
@@ -40,12 +41,12 @@ elemToInt (ES e) = 1 + elemToInt e
 
 -- | @Exp ctx ty@ is a well-typed expression of type @ty@ in context
 -- @ctx@. Note that a context is a list of types, where a type's index
--- in the list indicates the deBruijn index of the associated term-level
+-- in the list indicates the de Bruijn index of the associated term-level
 -- variable.
 data Exp :: [Ty] -> Ty -> * where
   Var :: Elem ctx ty -> Exp ctx ty
-  Lam :: ITy arg => Exp (arg ': ctx) res -> Exp ctx (arg `Arr` res)
-  App :: Exp ctx (arg `Arr` res) -> Exp ctx arg -> Exp ctx res
+  Lam :: ITy arg => Exp (arg ': ctx) res -> Exp ctx (arg '`Arr` res)
+  App :: Exp ctx (arg '`Arr` res) -> Exp ctx arg -> Exp ctx res
   Arith :: Exp ctx IntTy -> ArithOp ty -> Exp ctx IntTy -> Exp ctx ty
   Cond :: Exp ctx BoolTy -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
   IntE :: Integer -> Exp ctx IntTy
@@ -55,7 +56,7 @@ data Exp :: [Ty] -> Ty -> * where
 data Val :: [Ty] -> Ty -> * where
   IntVal  :: Integer -> Val ctx IntTy
   BoolVal :: Bool -> Val ctx BoolTy
-  LamVal  :: ITy arg => Exp (arg ': ctx) res -> Val ctx (arg `Arr` res)
+  LamVal  :: ITy arg => Exp (arg ': ctx) res -> Val ctx (arg '`Arr` res)
 
 -- | Inject a value back into an expression
 val :: Val ctx ty -> Exp ctx ty

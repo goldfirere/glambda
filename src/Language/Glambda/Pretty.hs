@@ -1,6 +1,13 @@
 {-# LANGUAGE ViewPatterns, GADTs, FlexibleInstances, UndecidableInstances,
-             OverlappingInstances #-}
+             CPP #-}
+#if __GLASGOW_HASKELL__ <= 708
+{-# LANGUAGE OverlappingInstances #-}
+{-# OPTIONS_GHC -fno-warn-unrecognised-pragmas #-}
+#endif
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
+
 
 -----------------------------------------------------------------------------
 -- |
@@ -57,8 +64,8 @@ precInfo Equals   = (4, 4, 4)
 type ApplyColor = Doc -> Doc
 
 data Coloring = Coloring (Stream ApplyColor)
-                            -- ^ a stream of remaining colors to use
-                         [ApplyColor]  -- ^ the colors used for bound variables
+                         [ApplyColor]  -- ^ a stream of remaining colors to use,
+                                       -- and the colors used for bound variables
 
 -- | A 'Coloring' for an empty context
 defaultColoring :: Coloring
@@ -71,7 +78,7 @@ defaultColoring = Coloring all_colors []
 class Pretty exp => PrettyExp exp where
   prettyExp :: Coloring -> Prec -> exp -> Doc
 
-instance PrettyExp exp => Pretty exp where
+instance {-# OVERLAPPABLE #-} PrettyExp exp => Pretty exp where
   pretty = prettyExp defaultColoring topPrec
 
 -- | Print a variable

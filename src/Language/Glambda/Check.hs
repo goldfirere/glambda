@@ -1,4 +1,8 @@
-{-# LANGUAGE RankNTypes, DataKinds, PolyKinds, GADTs, FlexibleContexts #-}
+{-# LANGUAGE RankNTypes, DataKinds, PolyKinds, GADTs, FlexibleContexts, CPP #-}
+
+#ifdef __HADDOCK_VERSION__
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+#endif
 
 -----------------------------------------------------------------------------
 -- |
@@ -21,10 +25,12 @@ import Language.Glambda.Type
 import Language.Glambda.Unchecked
 import Language.Glambda.Util
 import Language.Glambda.Globals
+#ifdef __HADDOCK_VERSION__
+import Language.Glambda.Monad ( GlamE )
+#endif
 
 import Text.PrettyPrint.ANSI.Leijen
 
-import Control.Monad.Error
 import Control.Monad.Reader
 import Data.Type.Equality
 
@@ -39,7 +45,8 @@ typeError e doc = throwError $
 -- | Check the given expression, aborting on type errors. The resulting
 -- type and checked expression is given to the provided continuation.
 -- This is parameterized over the choice of monad in order to support
--- pure operation during testing.
+-- pure operation during testing. 'GlamE' is the canonical choice for the
+-- monad.
 check :: (MonadError Doc m, MonadReader Globals m)
       => UExp -> (forall t. STy t -> Exp '[] t -> m r)
       -> m r

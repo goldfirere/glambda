@@ -75,7 +75,7 @@ sBoolTy = STyCon SBoolTc
 
 -- | Singleton for a glambda type
 data STy :: Ty -> * where
-  SArr   :: STy arg -> STy res -> STy (arg `Arr` res)
+  SArr   :: STy arg -> STy res -> STy (arg '`Arr` res)
   STyCon :: STyCon tc -> STy ('TyCon tc)
 infixr 1 `SArr`
 
@@ -83,7 +83,7 @@ infixr 1 `SArr`
 class ITy (ty :: Ty) where
   sty :: STy ty
 
-instance (ITy arg, ITy res) => ITy (arg `Arr` res) where
+instance (ITy arg, ITy res) => ITy (arg '`Arr` res) where
   sty = sty `SArr` sty
 instance ITy ('TyCon 'IntTc) where
   sty = STyCon SIntTc

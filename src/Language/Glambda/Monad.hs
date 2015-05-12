@@ -1,5 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, DefaultSignatures,
-             FlexibleContexts #-}
+             FlexibleContexts, CPP #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -27,10 +27,12 @@ import System.Console.Haskeline
 import Text.PrettyPrint.ANSI.Leijen
 
 import Control.Error
-import Control.Monad.Error
 import Control.Monad.Reader
-import Control.Applicative
 import System.IO
+
+#if __GLASGOW_HASKELL__ < 709
+import Control.Applicative
+#endif
 
 -- | A monad giving Haskeline-like interaction and access to 'Globals'
 newtype Glam a = Glam { unGlam :: ReaderT Globals (InputT IO) a }
