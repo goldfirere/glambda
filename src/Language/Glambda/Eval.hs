@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes, TypeOperators, ScopedTypeVariables,
-             EmptyCase, DataKinds, TypeFamilies, PolyKinds,
+             DataKinds, TypeFamilies, PolyKinds,
              GADTs #-}
 
 -----------------------------------------------------------------------------
@@ -94,9 +94,15 @@ cond :: Val '[] BoolTy -> Exp '[] t -> Exp '[] t -> Exp '[] t
 cond (BoolVal True)  e _ = e
 cond (BoolVal False) _ e = e
 
+-- | A well-typed variable in an empty context is impossible.
+impossibleVar :: Elem '[] x -> a
+impossibleVar _ = error "GHC's typechecker failed"
+  -- GHC 7.8+ supports EmptyCase for this, but the warnings for that
+  -- construct don't work yet.
+
 -- | Evaluate an expression, using big-step semantics.
 eval :: Exp '[] t -> Val '[] t
-eval (Var v) = case v of {}
+eval (Var v) = impossibleVar v
 eval (Lam body) = LamVal body
 eval (App e1 e2) = eval (apply (eval e1) e2)
 eval (Arith e1 op e2) = arith (eval e1) op (eval e2)
@@ -106,7 +112,7 @@ eval (BoolE b) = BoolVal b
 
 -- | Step an expression, either to another expression or to a value.
 step :: Exp '[] t -> Either (Exp '[] t) (Val '[] t)
-step (Var v) = case v of {}
+step (Var v) = impossibleVar v
 step (Lam body) = Right (LamVal body)
 step (App e1 e2) = case step e1 of
   Left e1' -> Left (App e1' e2)

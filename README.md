@@ -62,6 +62,8 @@ In the actual output (if your console supports it), the binders (`#`) and
 usage sites (`#0`, `#1`) are colored so that humans can easily tell which
 variable is used where.
 
+[1]: https://en.wikipedia.org/wiki/De_Bruijn_index
+
 You can also see above that the input to glambda must be fully annotated;
 glambda does *not* do type inference. However, note that types on binders
 do not appear in the output: once an input is type-checked, the type information

@@ -1,5 +1,5 @@
 {-# LANGUAGE DataKinds, PolyKinds, GADTs, TypeOperators, TypeFamilies,
-             ScopedTypeVariables, EmptyCase #-}
+             ScopedTypeVariables #-}
 
 -----------------------------------------------------------------------------
 -- |
