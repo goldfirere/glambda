@@ -19,8 +19,6 @@ import Control.Monad.Reader
 import Data.Text
 import Text.PrettyPrint.ANSI.Leijen
 
-import Data.Functor.Identity
-import Data.Maybe
 import Data.List as List
 import Control.Arrow as Arrow
 
@@ -60,8 +58,8 @@ checkTests = testGroup "Typechecker" $
                        check uexp $ \sty exp -> return $
                          case m_result of
                            Just result
-                             -> (render (pretty exp), unrefineTy sty,
-                                 render (pretty (eval exp)))
+                             -> (render (plain $ pretty exp), unrefineTy sty,
+                                 render (plain $ pretty (eval exp)))
                                  @?= result
                            _ -> assertFailure "unexpected type-check success"
                   of

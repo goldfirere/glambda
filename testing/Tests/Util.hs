@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Tests.Util
@@ -13,7 +15,7 @@
 module Tests.Util (
   module Test.Tasty,
   testCase,
-  (@?=), (@=?) )
+  (@?=), (@=?), (@?) )
   where
 
 import Language.Glambda.Util

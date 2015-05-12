@@ -32,15 +32,15 @@ data UExp
   | UBoolE Bool
 
 instance PrettyExp UExp where
-  prettyPrec = pretty_exp
+  prettyExp = pretty_exp
 
-pretty_exp :: Prec -> UExp -> Doc
-pretty_exp _    (UVar n)                     = char '#' <> int n
-pretty_exp _    (UGlobal n)                  = text (unpack n)
-pretty_exp prec (ULam ty body)               = prettyLam prec ty body
-pretty_exp prec (UApp e1 e2)                 = prettyApp prec e1 e2
-pretty_exp prec (UArith e1 (UArithOp op) e2) = prettyArith prec e1 op e2
-pretty_exp prec (UCond e1 e2 e3)             = prettyIf prec e1 e2 e3
-pretty_exp _    (UIntE n)                    = integer n
-pretty_exp _    (UBoolE True)                = text "true"
-pretty_exp _    (UBoolE False)               = text "false"
+pretty_exp :: Coloring -> Prec -> UExp -> Doc
+pretty_exp c _    (UVar n)                     = prettyVar c n
+pretty_exp _ _    (UGlobal n)                  = text (unpack n)
+pretty_exp c prec (ULam ty body)               = prettyLam c prec ty body
+pretty_exp c prec (UApp e1 e2)                 = prettyApp c prec e1 e2
+pretty_exp c prec (UArith e1 (UArithOp op) e2) = prettyArith c prec e1 op e2
+pretty_exp c prec (UCond e1 e2 e3)             = prettyIf c prec e1 e2 e3
+pretty_exp _ _    (UIntE n)                    = integer n
+pretty_exp _ _    (UBoolE True)                = text "true"
+pretty_exp _ _    (UBoolE False)               = text "false"

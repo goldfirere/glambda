@@ -17,28 +17,20 @@ module Language.Glambda.Lex ( lexG, lex ) where
 import Prelude hiding ( lex )
 
 import Language.Glambda.Token
-import Language.Glambda.Util
 import Language.Glambda.Monad
 
-import Text.Parsec.Token
-import Text.Parsec.Language
-import Text.Parsec.Pos
-import Text.Parsec.Prim  ( Parsec, parse, getPosition )
-import Text.Parsec.Error
+import Text.Parsec.Prim  ( Parsec, parse, getPosition, try )
+import Text.Parsec.Combinator
 
 import Text.Parser.Char
-import Text.Parser.Combinators
 import Text.Parser.Token as Parser hiding ( symbolic )
 
-import Control.Error
-
 import Data.Functor
-import Data.Functor.Identity
 import Data.Text
+import Data.Maybe
 
 import Control.Applicative
 import Control.Arrow as Arrow
-import Data.Maybe
 
 type Lexer = Parsec Text ()
 

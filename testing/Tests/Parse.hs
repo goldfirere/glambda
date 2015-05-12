@@ -4,7 +4,6 @@ module Tests.Parse where
 
 import Language.Glambda.Lex
 import Language.Glambda.Parse
-import Language.Glambda.Token
 import Language.Glambda.Util
 import Tests.Util
 
@@ -14,12 +13,6 @@ import Text.PrettyPrint.ANSI.Leijen
 
 import Data.Text as Text
 import Data.List as List
-import Control.Monad
-import Control.Error
-import Data.Functor.Identity
-
-import Test.Tasty
-import Test.Tasty.HUnit  ( testCase, (@?) )
 
 parseTestCases :: [(Text, Text)]
 parseTestCases = [ ("\\x:Int.x", "λ#:Int. #0")
@@ -45,7 +38,7 @@ parseTests :: TestTree
 parseTests = testGroup "Parser"
   [ testGroup "Success" $
     List.map (\(str, out) -> testCase ("`" ++ unpack str ++ "'") $
-              (render $ pretty (parseExp =<< lex str)) @?=
+              (render $ plain $ pretty (parseExp =<< lex str)) @?=
                 ("Right " ++ unpack out))
              parseTestCases
   , testGroup "Failure" $

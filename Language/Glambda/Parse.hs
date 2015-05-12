@@ -24,15 +24,11 @@ import Language.Glambda.Type
 import Language.Glambda.Monad
 import Language.Glambda.Util
 
-import Text.Parsec.Prim as Parsec   ( runParserT, ParsecT, tokenPrim )
-import Text.Parsec.Error            ( ParseError )
+import Text.Parsec.Prim as Parsec hiding ( parse )
 import Text.Parsec.Pos
-
-import Text.Parser.Combinators as Parser
+import Text.Parsec.Combinator
 
 import Text.PrettyPrint.ANSI.Leijen hiding ( (<$>) )
-
-import Control.Error
 
 import Data.List as List
 import Data.Text as Text

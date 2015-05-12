@@ -21,7 +21,6 @@ module Language.Glambda.Util (
 import Text.Parsec
 import Text.PrettyPrint.ANSI.Leijen as Pretty
 
-import Control.Applicative
 import Control.Monad
 
 instance Pretty ParseError where

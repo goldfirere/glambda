@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, FlexibleInstances,
+{-# LANGUAGE OverloadedStrings, FlexibleInstances,
              UndecidableInstances, OverlappingInstances #-}
 
 -----------------------------------------------------------------------------
@@ -32,11 +32,8 @@ import Text.PrettyPrint.ANSI.Leijen as Pretty hiding ( (<$>) )
 import System.Console.Haskeline
 
 import Data.Text
-import Language.Haskell.TH.Syntax as TH hiding ( report )
 import Control.Applicative
 import Control.Monad
-import Control.Error
-import Control.Monad.Error
 import Control.Monad.Reader
 import Data.Char
 import Data.List as List
@@ -99,10 +96,7 @@ lambda
 
 -- | The current version of glambda
 version :: String
-version = $( do Loc { loc_package = pkg_string } <- location
-                TH.lift $ case List.stripPrefix "glambda-" pkg_string of
-                  Just ver -> ver
-                  Nothing  -> "?" )
+version = "1.0"
 
 -------------------------------------------
 -- commands

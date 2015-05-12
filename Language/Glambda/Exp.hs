@@ -81,18 +81,18 @@ eqExp _ _ = False
 -- Pretty-printing
 
 instance PrettyExp (Exp ctx ty) where
-  prettyPrec = pretty_exp
+  prettyExp = pretty_exp
 
 instance PrettyExp (Val ctx ty) where
-  prettyPrec prec v = prettyPrec prec (val v)
+  prettyExp coloring prec v = prettyExp coloring prec (val v)
 
-pretty_exp :: Prec -> Exp ctx ty -> Doc
-pretty_exp _    (Var n)                     = char '#' <> int (elemToInt n)
-pretty_exp prec (Lam (body :: Exp (arg ': rest) ty))
-  = prettyLam prec (unrefineTy (sty :: STy arg)) body
-pretty_exp prec (App e1 e2)                 = prettyApp prec e1 e2
-pretty_exp prec (Arith e1 op e2)            = prettyArith prec e1 op e2
-pretty_exp prec (Cond e1 e2 e3)             = prettyIf prec e1 e2 e3
-pretty_exp _    (IntE n)                    = integer n
-pretty_exp _    (BoolE True)                = text "true"
-pretty_exp _    (BoolE False)               = text "false"
+pretty_exp :: Coloring -> Prec -> Exp ctx ty -> Doc
+pretty_exp c _    (Var n)                     = prettyVar c (elemToInt n)
+pretty_exp c prec (Lam (body :: Exp (arg ': rest) ty))
+  = prettyLam c prec (unrefineTy (sty :: STy arg)) body
+pretty_exp c prec (App e1 e2)                 = prettyApp c prec e1 e2
+pretty_exp c prec (Arith e1 op e2)            = prettyArith c prec e1 op e2
+pretty_exp c prec (Cond e1 e2 e3)             = prettyIf c prec e1 e2 e3
+pretty_exp _ _    (IntE n)                    = integer n
+pretty_exp _ _    (BoolE True)                = text "true"
+pretty_exp _ _    (BoolE False)               = text "false"

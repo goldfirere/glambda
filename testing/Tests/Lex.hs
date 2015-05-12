@@ -11,11 +11,6 @@ import Prelude hiding ( lex )
 import Data.Text as Text
 import Data.List as List
 import Control.Arrow as Arrow ( right )
-import Control.Error
-import Data.Functor.Identity
-
-import Test.Tasty
-import Test.Tasty.HUnit  ( testCase )
 
 lexTestCases :: [(Text, [Token])]
 lexTestCases = [ ("", [])

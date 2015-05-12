@@ -1,0 +1,82 @@
+name:           glambda
+version:        1.0
+cabal-version:  >= 1.10
+synopsis:       A simply typed lambda calculus interpreter, written with GADTs
+homepage:       https://github.com/goldfirere/glambda
+category:       Compilers/Interpreters
+author:         Richard Eisenberg <eir@cis.upenn.edu>
+maintainer:     Richard Eisenberg <eir@cis.upenn.edu>
+bug-reports:    https://github.com/goldfirere/glambda/issues
+stability:      unknown
+extra-source-files: README.md, CHANGES.md
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+description:
+    This is an interpreter for the simply-typed lambda calculus. It is
+    written making heavy use of generalized algebraic datatypes (GADTs), and is
+    meant to serve as an example how how these GADTs can be useful. See
+    the GitHub repo for more information about the syntax for the language
+    and interpreter commands.
+
+source-repository this
+  type:     git
+  location: https://github.com/goldfirere/glambda.git
+  tag:      v1.0
+
+library
+  build-depends:      base == 4.*
+                    , ansi-wl-pprint >= 0.6.7.1
+                    , errors >= 1.4.6
+                    , mtl >= 2.1.3.1
+                    , containers >= 0.5
+                    , text >= 1.1
+                    , parsec >= 3.1
+                    , haskeline >= 0.7.1.1
+                    , Stream >= 0.4.7.1
+                    , parsers >= 0.12
+
+
+  exposed-modules:    Language.Glambda.Check
+                      Language.Glambda.Eval
+                      Language.Glambda.Exp
+                      Language.Glambda.Globals
+                      Language.Glambda.Lex
+                      Language.Glambda.Monad
+                      Language.Glambda.Parse
+                      Language.Glambda.Pretty
+                      Language.Glambda.Repl
+                      Language.Glambda.Statement
+                      Language.Glambda.Token
+                      Language.Glambda.Type
+                      Language.Glambda.Unchecked
+                      Language.Glambda.Util
+
+  ghc-options:        -Wall -fno-warn-name-shadowing
+  default-language:   Haskell2010
+
+executable glam
+  build-depends:      base == 4.*
+                    , glambda
+
+  hs-source-dirs:     main
+  ghc-options:        -Wall -fno-warn-name-shadowing
+  default-language:   Haskell2010
+  main-is:            Main.hs
+
+test-suite tests
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     testing
+  ghc-options:        -Wall -fno-warn-name-shadowing -main-is Tests.Main
+  default-language:   Haskell2010
+  main-is:            Tests/Main.hs
+
+  build-depends:      base == 4.*
+                    , glambda
+                    , ansi-wl-pprint >= 0.6.7.1
+                    , errors >= 1.4.6
+                    , mtl >= 2.1.3.1
+                    , text >= 1.1
+                    , parsec >= 3.1
+                    , tasty >= 0.10
+                    , tasty-hunit >= 0.9

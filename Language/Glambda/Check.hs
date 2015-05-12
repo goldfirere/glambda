@@ -21,14 +21,9 @@ import Language.Glambda.Type
 import Language.Glambda.Unchecked
 import Language.Glambda.Util
 import Language.Glambda.Globals
-import Language.Glambda.Monad
 
 import Text.PrettyPrint.ANSI.Leijen
 
-import Control.Applicative
-import Control.Error
-import Control.Monad
-import Control.Monad.Trans
 import Control.Monad.Error
 import Control.Monad.Reader
 import Data.Type.Equality
