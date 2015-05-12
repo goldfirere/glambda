@@ -79,8 +79,8 @@ check = go emptyContext
             -> k res_ty (App e1' e2')
           _ -> typeError e $
                text "Bad function application." $$
-               hang 2 (vcat [ text "Function type:" <+> pretty ty1
-                            , text "Argument type:" <+> pretty ty2 ])
+               indent 2 (vcat [ text "Function type:" <+> pretty ty1
+                              , text "Argument type:" <+> pretty ty2 ])
 
     go ctx e@(UArith e1 (UArithOp op) e2) k
       = go ctx e1 $ \sty1 e1' ->
@@ -90,8 +90,8 @@ check = go emptyContext
             -> k sty (Arith e1' op e2')
           _ -> typeError e $
                text "Bad arith operand(s)." $$
-               hang 2 (vcat [ text " Left-hand type:" <+> pretty sty1
-                            , text "Right-hand type:" <+> pretty sty2 ])
+               indent 2 (vcat [ text " Left-hand type:" <+> pretty sty1
+                              , text "Right-hand type:" <+> pretty sty2 ])
 
     go ctx e@(UCond e1 e2 e3) k
       = go ctx e1 $ \sty1 e1' ->
@@ -103,11 +103,11 @@ check = go emptyContext
             -> k sty2 (Cond e1' e2' e3')
           _ -> typeError e $
                text "Bad conditional." $$
-               hang 2 (vcat [ text "Flag type:" <+> pretty sty1
-                            , squotes (text "true") <+> text "expression type:"
-                                                    <+> pretty sty2
-                            , squotes (text "false") <+> text "expression type:"
-                                                     <+> pretty sty3 ])
+               indent 2 (vcat [ text "Flag type:" <+> pretty sty1
+                              , squotes (text "true") <+> text "expression type:"
+                                                      <+> pretty sty2
+                              , squotes (text "false") <+> text "expression type:"
+                                                       <+> pretty sty3 ])
 
     go _   (UIntE n)  k = k sty (IntE n)
     go _   (UBoolE b) k = k sty (BoolE b)

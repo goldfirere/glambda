@@ -124,7 +124,7 @@ dispatchCommand table line
       [(_, action)] -> action arg
       many          -> do printLine $ "Ambiguous command:" <+> squotes (text cmd)
                           printLine $ text "Possibilities:" $$
-                                      hang 2 (vcat $ List.map (text . fst) many)
+                                      indent 2 (vcat $ List.map (text . fst) many)
                           return True
   where (cmd, arg) = List.break isSpace line
 
