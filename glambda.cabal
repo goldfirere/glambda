@@ -37,7 +37,8 @@ library
                     , parsers >= 0.12
 
 
-  exposed-modules:    Language.Glambda.Check
+  exposed-modules:    Language.Glambda.Repl
+                      Language.Glambda.Check
                       Language.Glambda.Eval
                       Language.Glambda.Exp
                       Language.Glambda.Globals
@@ -45,7 +46,6 @@ library
                       Language.Glambda.Monad
                       Language.Glambda.Parse
                       Language.Glambda.Pretty
-                      Language.Glambda.Repl
                       Language.Glambda.Statement
                       Language.Glambda.Token
                       Language.Glambda.Type
