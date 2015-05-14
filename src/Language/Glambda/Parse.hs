@@ -15,7 +15,11 @@
 --
 ----------------------------------------------------------------------------
 
-module Language.Glambda.Parse ( parseStmtG, parseExpG, parseStmt, parseExp ) where
+module Language.Glambda.Parse (
+  parseStmtsG, parseStmts,
+  parseStmtG, parseExpG,
+  parseStmt, parseExp
+  ) where
 
 import Language.Glambda.Unchecked
 import Language.Glambda.Statement
@@ -36,6 +40,15 @@ import Data.Text as Text
 import Control.Applicative
 import Control.Arrow as Arrow ( left )
 import Control.Monad.Reader
+
+-- | Parse a sequence of semicolon-separated statements, aborting with
+-- an error upon failure
+parseStmtsG :: [LToken] -> GlamE [Statement]
+parseStmtsG = eitherToGlamE . parseStmts
+
+-- | Parse a sequence of semicolon-separated statements
+parseStmts :: [LToken] -> Either String [Statement]
+parseStmts = parse stmts
 
 -- | Parse a 'Statement', aborting with an error upon failure
 parseStmtG :: [LToken] -> GlamE Statement
@@ -92,6 +105,9 @@ next_pos _   _ (L pos _ : _) = pos
 
 --------------
 -- Real work
+
+stmts :: Parser [Statement]
+stmts = stmt `sepEndBy` tok Semi
 
 stmt :: Parser Statement
 stmt = choice [ try $ NewGlobal <$> tok' unName <* tok Assign <*> expr

@@ -34,10 +34,13 @@ import Language.Glambda.Monad
 import Text.PrettyPrint.ANSI.Leijen as Pretty hiding ( (<$>) )
 
 import System.Console.Haskeline
+import System.Directory
 
-import Data.Text
+import Data.Text as Text
+import Data.Text.IO as Text
 import Control.Monad
 import Control.Monad.Reader
+import Control.Monad.State
 import Data.Char
 import Data.List as List
 
@@ -51,33 +54,15 @@ main = runInputT defaultSettings $
        runGlam $ do
          helloWorld
          loop
-  where
-    loop :: Glam ()
-    loop = do
-      m_line <- prompt "λ> "
-      case List.dropWhile isSpace <$> m_line of
-        Nothing -> void (quit "")
-        Just (':' : cmd) -> whenM (runCommand cmd) loop
-        Just expr        ->
-          do result <- runGlamE $ do
-               toks <- lexG (pack expr)
-               stmt <- parseStmtG toks
-               case stmt of
-                 BareExp uexp -> check uexp $ \sty exp -> do
-                   printLine $ printWithType (eval exp) sty
-                   return id
-                 NewGlobal g uexp -> check uexp $ \sty exp -> do
-                   printLine $
-                     text (unpack g) <+> char '=' <+> printWithType exp sty
-                   return (extend g sty exp)
 
-             modify_globals <- case result of
-               Right gl -> return gl
-               Left err -> do
-                 printLine err
-                 return id
-
-             local modify_globals loop
+loop :: Glam ()
+loop = do
+  m_line <- prompt "λ> "
+  case List.dropWhile isSpace <$> m_line of
+    Nothing          -> quit
+    Just (':' : cmd) -> runCommand cmd
+    Just str         -> runStmts (pack str)
+  loop
 
 -- | Prints welcome message
 helloWorld :: Glam ()
@@ -107,58 +92,80 @@ version :: String
 version = "1.0"
 
 -------------------------------------------
+-- running statements
+
+runStmts :: Text -> Glam ()
+runStmts str = reportErrors $ do
+    toks <- lexG str
+    stmts <- parseStmtsG toks
+    doStmts stmts
+
+-- | Run a sequence of statements, returning the new global variables
+doStmts :: [Statement] -> GlamE Globals
+doStmts []     = ask
+doStmts (s:ss) = doStmt s $ doStmts ss
+
+-- | Run a 'Statement' and then run another action with the global
+-- variables built in the 'Statement'
+doStmt :: Statement -> GlamE a -> GlamE a
+doStmt (BareExp uexp) thing_inside = check uexp $ \sty exp -> do
+  printLine $ printWithType (eval exp) sty
+  thing_inside
+doStmt (NewGlobal g uexp) thing_inside = check uexp $ \sty exp -> do
+  printLine $ text (unpack g) <+> char '=' <+> printWithType exp sty
+  local (extend g sty exp) thing_inside
+
+-------------------------------------------
 -- commands
 
--- | Interpret a command (missing the initial ':'). Returns True when
--- the REPL should continue
-runCommand :: String -> Glam Bool
+-- | Interpret a command (missing the initial ':').
+runCommand :: String -> Glam ()
 runCommand = dispatchCommand cmdTable
 
-type CommandTable = [(String, String -> Glam Bool)]
+type CommandTable = [(String, String -> Glam ())]
 
-dispatchCommand :: CommandTable -> String -> Glam Bool
+dispatchCommand :: CommandTable -> String -> Glam ()
 dispatchCommand table line
   = case List.filter ((cmd `List.isPrefixOf`) . fst) table of
       []            -> do printLine $ text "Unknown command:" <+> squotes (text cmd)
-                          return True
       [(_, action)] -> action arg
       many          -> do printLine $ "Ambiguous command:" <+> squotes (text cmd)
                           printLine $ text "Possibilities:" $$
                                       indent 2 (vcat $ List.map (text . fst) many)
-                          return True
   where (cmd, arg) = List.break isSpace line
 
 cmdTable :: CommandTable
-cmdTable = [ ("quit",  quit)
-           , ("lex",   lexCmd)
-           , ("parse", parseCmd)
-           , ("eval",  evalCmd)
-           , ("step",  stepCmd)
-           , ("type",  typeCmd)
-           , ("all",   allCmd) ]
+cmdTable = [ ("quit",    quitCmd)
+           , ("d-lex",   lexCmd)
+           , ("d-parse", parseCmd)
+           , ("load",    loadCmd)
+           , ("eval",    evalCmd)
+           , ("step",    stepCmd)
+           , ("type",    typeCmd)
+           , ("all",     allCmd) ]
 
-quit :: String -> Glam Bool
-quit _ = do
-  printLine (text "Good-bye.")
-  return False
+quitCmd :: String -> Glam ()
+quitCmd _ = quit
 
 class Reportable a where
-  report :: a -> Glam ()
+  report :: a -> Glam Globals
 
 instance Reportable Doc where
-  report = printLine
+  report x = printLine x >> get
 instance Reportable () where
+  report _ = get
+instance Reportable Globals where
   report = return
 instance {-# OVERLAPPABLE #-} Pretty a => Reportable a where
-  report = printLine . pretty
+  report other = printLine (pretty other) >> get
 
-reportErrors :: Reportable a => GlamE a -> Glam Bool
+reportErrors :: Reportable a => GlamE a -> Glam ()
 reportErrors thing_inside = do
   result <- runGlamE thing_inside
-  case result of
-    Left err -> printLine err
+  new_globals <- case result of
+    Left err -> printLine err >> get
     Right x  -> report x
-  return True
+  put new_globals
 
 parseLex :: String -> GlamE UExp
 parseLex = (parseExpG <=< lexG) . pack
@@ -167,7 +174,8 @@ printWithType :: (Pretty exp, Pretty ty) => exp -> ty -> Doc
 printWithType exp ty
   = pretty exp <+> colon <+> pretty ty
 
-lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd :: String -> Glam Bool
+lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd, loadCmd
+  :: String -> Glam ()
 lexCmd expr = reportErrors $ lexG (pack expr)
 parseCmd = reportErrors . parseLex
 
@@ -198,6 +206,13 @@ allCmd expr = do
 
   printLine Pretty.empty
   printLine (text "Big step:")
-  _ <- evalCmd expr
+  evalCmd expr
 
-  return True
+loadCmd file = do
+  file_exists <- liftIO $ doesFileExist file
+  if not file_exists then file_not_found else do
+  contents <- liftIO $ Text.readFile file
+  runStmts contents
+  where
+    file_not_found
+      = printLine (text "File not found:" <+> squotes (text file))

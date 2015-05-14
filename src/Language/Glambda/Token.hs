@@ -93,6 +93,7 @@ data Token
   | Then
   | Else
   | Assign
+  | Semi
   | Name Text
     deriving Eq
 
@@ -182,6 +183,7 @@ printingInfo If           = alone $ text "if"
 printingInfo Then         = alone $ text "then"
 printingInfo Else         = alone $ text "else"
 printingInfo Assign       = alone $ text "="
+printingInfo Semi         = (char ';', False, True)
 printingInfo (Name t)     = alone $ text (unpack t)
 
 printTogether :: [PrintingInfo] -> Doc

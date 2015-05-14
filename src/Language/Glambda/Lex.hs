@@ -103,7 +103,8 @@ symbolic = choice [ LParen  <$  char '('
                   , Arrow   <$  try (text "->")
                   , Colon   <$  char ':'
                   , ArithOp <$> arith_op
-                  , Assign  <$  char '=' ]
+                  , Assign  <$  char '='
+                  , Semi    <$  char ';' ]
 
 -- | Lex one arithmetic operator
 arith_op :: Lexer UArithOp
