@@ -35,6 +35,7 @@ library
                     , haskeline >= 0.7.1.1
                     , Stream >= 0.4.7.1
                     , parsers >= 0.12
+                    , directory >= 1.2.0.1
 
 
   exposed-modules:    Language.Glambda.Repl

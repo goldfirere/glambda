@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, FlexibleInstances,
-             UndecidableInstances, CPP #-}
+             UndecidableInstances, CPP, ViewPatterns,
+             NondecreasingIndentation #-}
 #if __GLASGOW_HASKELL__ < 709
 {-# LANGUAGE OverlappingInstances #-}
 {-# OPTIONS_GHC -fno-warn-unrecognised-pragmas #-}
@@ -58,7 +59,7 @@ main = runInputT defaultSettings $
 loop :: Glam ()
 loop = do
   m_line <- prompt "λ> "
-  case List.dropWhile isSpace <$> m_line of
+  case stripWhitespace <$> m_line of
     Nothing          -> quit
     Just (':' : cmd) -> runCommand cmd
     Just str         -> runStmts (pack str)
@@ -208,11 +209,13 @@ allCmd expr = do
   printLine (text "Big step:")
   evalCmd expr
 
-loadCmd file = do
+loadCmd (stripWhitespace -> file) = do
   file_exists <- liftIO $ doesFileExist file
   if not file_exists then file_not_found else do
   contents <- liftIO $ Text.readFile file
   runStmts contents
   where
-    file_not_found
-      = printLine (text "File not found:" <+> squotes (text file))
+    file_not_found = do
+      printLine (text "File not found:" <+> squotes (text file))
+      cwd <- liftIO getCurrentDirectory
+      printLine (parens (text "Current directory:" <+> text cwd))

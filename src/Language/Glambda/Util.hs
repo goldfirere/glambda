@@ -17,15 +17,15 @@
 
 module Language.Glambda.Util (
   render, toSimpleDoc, maybeParens, ($$),
-  Prec, topPrec, whenM,
-  MonadError(..)
+  Prec, topPrec,
+  stripWhitespace
   ) where
 
 import Text.Parsec
 import Text.PrettyPrint.ANSI.Leijen as Pretty
 
-import Control.Monad
-import Control.Monad.Error
+import Data.Char
+import Data.List
 
 instance Pretty ParseError where
   pretty = text . show
@@ -54,6 +54,6 @@ maybeParens False = id
 ($$) :: Doc -> Doc -> Doc
 ($$) = (Pretty.<$>)
 
--- | Like 'when', but more monadic
-whenM :: Monad m => m Bool -> m () -> m ()
-whenM mb thing = flip when thing =<< mb
+-- | (Inefficiently) strips whitespace from a string
+stripWhitespace :: String -> String
+stripWhitespace = dropWhile isSpace . dropWhileEnd isSpace
