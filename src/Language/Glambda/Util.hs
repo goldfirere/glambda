@@ -18,7 +18,7 @@
 module Language.Glambda.Util (
   render, toSimpleDoc, maybeParens, ($$),
   Prec, topPrec,
-  stripWhitespace
+  stripWhitespace, nthDefault
   ) where
 
 import Text.Parsec
@@ -57,3 +57,10 @@ maybeParens False = id
 -- | (Inefficiently) strips whitespace from a string
 stripWhitespace :: String -> String
 stripWhitespace = dropWhile isSpace . dropWhileEnd isSpace
+
+-- | Pluck out the nth item from a list, or use a default if the list
+-- is too short
+nthDefault :: a -> Int -> [a] -> a
+nthDefault _   0 (x:_)  = x
+nthDefault def n (_:xs) = nthDefault def (n-1) xs
+nthDefault def _ []     = def

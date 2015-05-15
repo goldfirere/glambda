@@ -92,6 +92,7 @@ data Token
   | If
   | Then
   | Else
+  | FixT
   | Assign
   | Semi
   | Name Text
@@ -182,6 +183,7 @@ printingInfo (Bool False) = alone $ text "false"
 printingInfo If           = alone $ text "if"
 printingInfo Then         = alone $ text "then"
 printingInfo Else         = alone $ text "else"
+printingInfo FixT         = alone $ text "fix"
 printingInfo Assign       = alone $ text "="
 printingInfo Semi         = (char ';', False, True)
 printingInfo (Name t)     = alone $ text (unpack t)

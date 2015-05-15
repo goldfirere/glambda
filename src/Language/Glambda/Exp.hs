@@ -44,12 +44,13 @@ elemToInt (ES e) = 1 + elemToInt e
 -- in the list indicates the de Bruijn index of the associated term-level
 -- variable.
 data Exp :: [Ty] -> Ty -> * where
-  Var :: Elem ctx ty -> Exp ctx ty
-  Lam :: Exp (arg ': ctx) res -> Exp ctx (arg '`Arr` res)
-  App :: Exp ctx (arg '`Arr` res) -> Exp ctx arg -> Exp ctx res
+  Var   :: Elem ctx ty -> Exp ctx ty
+  Lam   :: Exp (arg ': ctx) res -> Exp ctx (arg '`Arr` res)
+  App   :: Exp ctx (arg '`Arr` res) -> Exp ctx arg -> Exp ctx res
   Arith :: Exp ctx IntTy -> ArithOp ty -> Exp ctx IntTy -> Exp ctx ty
-  Cond :: Exp ctx BoolTy -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
-  IntE :: Integer -> Exp ctx IntTy
+  Cond  :: Exp ctx BoolTy -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
+  Fix   :: Exp ctx (ty '`Arr` ty) -> Exp ctx ty
+  IntE  :: Integer -> Exp ctx IntTy
   BoolE :: Bool -> Exp ctx BoolTy
 
 -- | Well-typed values
@@ -93,6 +94,7 @@ pretty_exp c prec (Lam body)       = prettyLam c prec Nothing body
 pretty_exp c prec (App e1 e2)      = prettyApp c prec e1 e2
 pretty_exp c prec (Arith e1 op e2) = prettyArith c prec e1 op e2
 pretty_exp c prec (Cond e1 e2 e3)  = prettyIf c prec e1 e2 e3
+pretty_exp c prec (Fix e)          = prettyFix c prec e
 pretty_exp _ _    (IntE n)         = integer n
 pretty_exp _ _    (BoolE True)     = text "true"
 pretty_exp _ _    (BoolE False)    = text "false"

@@ -125,7 +125,8 @@ term :: Parser UExp
 term = apps `chainl1` mul_op
 
 apps :: Parser UExp
-apps = List.foldl1 UApp <$> some factor
+apps = choice [ UFix <$ tok FixT <*> expr
+              , List.foldl1 UApp <$> some factor ]
 
 factor :: Parser UExp
 factor = choice [ between (tok LParen) (tok RParen) expr

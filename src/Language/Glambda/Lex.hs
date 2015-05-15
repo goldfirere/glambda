@@ -128,6 +128,7 @@ word_token = to_token <$> word
     to_token "if"    = If
     to_token "then"  = Then
     to_token "else"  = Else
+    to_token "fix"   = FixT
     to_token other   = Name other
 
 -- | Lex one word

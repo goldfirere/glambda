@@ -24,7 +24,7 @@
 
 module Language.Glambda.Pretty (
   PrettyExp(..), Coloring, defaultColoring,
-  prettyVar, prettyLam, prettyApp, prettyArith, prettyIf
+  prettyVar, prettyLam, prettyApp, prettyArith, prettyIf, prettyFix
   ) where
 
 import Language.Glambda.Token
@@ -33,7 +33,6 @@ import Language.Glambda.Util
 
 import Text.PrettyPrint.ANSI.Leijen
 import Data.Stream
-import Data.List as List
 
 lamPrec, appPrec, appLeftPrec, appRightPrec, ifPrec :: Prec
 lamPrec = 1
@@ -80,45 +79,47 @@ class Pretty exp => PrettyExp exp where
   prettyExp :: Coloring -> Prec -> exp -> Doc
 
 instance {-# OVERLAPPABLE #-} PrettyExp exp => Pretty exp where
-  pretty = prettyExp defaultColoring topPrec
+  pretty = nest 2 . prettyExp defaultColoring topPrec
 
 -- | Print a variable
 prettyVar :: Coloring -> Int -> Doc
-prettyVar (Coloring _ bound) n = (bound List.!! n) (char '#' <> int n)
+prettyVar (Coloring _ bound) n = (nthDefault id n bound) (char '#' <> int n)
 
 -- | Print a lambda expression
 prettyLam :: PrettyExp exp => Coloring -> Prec -> Maybe Ty -> exp -> Doc
 prettyLam (Coloring (next `Cons` supply) existing) prec m_ty body
   = maybeParens (prec >= lamPrec) $
-    char 'λ' <>
-    next (char '#') <> maybe empty (\ty -> text ":" <> pretty ty) m_ty <>
-    char '.' <+> prettyExp (Coloring supply (next : existing)) topPrec body
+    fillSep [ char 'λ' <> next (char '#') <>
+              maybe empty (\ty -> text ":" <> pretty ty) m_ty <> char '.'
+            , prettyExp (Coloring supply (next : existing)) topPrec body ]
 
 -- | Print an application
 prettyApp :: (PrettyExp exp1, PrettyExp exp2)
           => Coloring -> Prec -> exp1 -> exp2 -> Doc
 prettyApp coloring prec e1 e2
   = maybeParens (prec >= appPrec) $
-    prettyExp coloring appLeftPrec  e1 <+>
-    prettyExp coloring appRightPrec e2
+    fillSep [ prettyExp coloring appLeftPrec  e1
+            , prettyExp coloring appRightPrec e2 ]
 
 -- | Print an arithemtic expression
 prettyArith :: (PrettyExp exp1, PrettyExp exp2)
             => Coloring -> Prec -> exp1 -> ArithOp ty -> exp2 -> Doc
 prettyArith coloring prec e1 op e2
   = maybeParens (prec >= opPrec op) $
-    prettyExp coloring (opLeftPrec op) e1 <+>
-    pretty op <+>
-    prettyExp coloring (opRightPrec op) e2
+    fillSep [ prettyExp coloring (opLeftPrec op) e1 <+> pretty op
+            , prettyExp coloring (opRightPrec op) e2 ]
 
 -- | Print a conditional
 prettyIf :: (PrettyExp exp1, PrettyExp exp2, PrettyExp exp3)
          => Coloring -> Prec -> exp1 -> exp2 -> exp3 -> Doc
 prettyIf coloring prec e1 e2 e3
   = maybeParens (prec >= ifPrec) $
-    hsep [ text "if"
-         , prettyExp coloring topPrec e1
-         , text "then"
-         , prettyExp coloring topPrec e2
-         , text "else"
-         , prettyExp coloring topPrec e3 ]
+    fillSep [ text "if" <+> prettyExp coloring topPrec e1
+            , text "then" <+> prettyExp coloring topPrec e2
+            , text "else" <+> prettyExp coloring topPrec e3 ]
+
+-- | Print a @fix@
+prettyFix :: PrettyExp exp => Coloring -> Prec -> exp -> Doc
+prettyFix coloring prec e
+  = maybeParens (prec >= appPrec) $
+    text "fix" <+> prettyExp coloring topPrec e

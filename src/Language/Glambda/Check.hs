@@ -32,6 +32,7 @@ import Language.Glambda.Monad ( GlamE )
 import Text.PrettyPrint.ANSI.Leijen
 
 import Control.Monad.Reader
+import Control.Monad.Error
 import Data.Type.Equality
 
 -- | Abort with a type error in the given expression
@@ -108,6 +109,15 @@ check = go emptyContext
                                                       <+> pretty sty2
                               , squotes (text "false") <+> text "expression type:"
                                                        <+> pretty sty3 ])
+
+    go ctx e@(UFix e1) k
+      = go ctx e1 $ \sty1 e1' ->
+        case sty1 of
+          arg `SArr` res
+            |  Just Refl <- arg `eqSTy` res
+            -> k arg (Fix e1')
+          _ -> typeError e $
+               text "Bad fix over expression with type:" <+> pretty sty1
 
     go _   (UIntE n)  k = k sty (IntE n)
     go _   (UBoolE b) k = k sty (BoolE b)

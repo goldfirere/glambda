@@ -34,6 +34,7 @@ import Text.PrettyPrint.ANSI.Leijen
 
 import Control.Error
 import Control.Monad.Reader
+import Control.Monad.Error
 import Control.Monad.State
 import System.IO
 

@@ -28,6 +28,7 @@ data UExp
   | UApp UExp UExp
   | UArith UExp UArithOp UExp
   | UCond UExp UExp UExp
+  | UFix UExp
   | UIntE Integer
   | UBoolE Bool
 
@@ -41,6 +42,7 @@ pretty_exp c prec (ULam ty body)               = prettyLam c prec (Just ty) body
 pretty_exp c prec (UApp e1 e2)                 = prettyApp c prec e1 e2
 pretty_exp c prec (UArith e1 (UArithOp op) e2) = prettyArith c prec e1 op e2
 pretty_exp c prec (UCond e1 e2 e3)             = prettyIf c prec e1 e2 e3
+pretty_exp c prec (UFix body)                  = prettyFix c prec body
 pretty_exp _ _    (UIntE n)                    = integer n
 pretty_exp _ _    (UBoolE True)                = text "true"
 pretty_exp _ _    (UBoolE False)               = text "false"

@@ -17,9 +17,10 @@ module Language.Glambda.Globals (
 
 import Language.Glambda.Exp
 import Language.Glambda.Type
-import Language.Glambda.Util
 
 import Text.PrettyPrint.ANSI.Leijen
+
+import Control.Monad.Error
 
 import Data.Map as Map
 import Data.Text
