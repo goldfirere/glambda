@@ -18,6 +18,7 @@ import Prelude hiding ( lex )
 
 import Language.Glambda.Token
 import Language.Glambda.Monad
+import Language.Glambda.Util
 
 import Text.Parsec.Prim  ( Parsec, parse, getPosition, try )
 import Text.Parsec.Combinator
@@ -25,7 +26,6 @@ import Text.Parsec.Combinator
 import Text.Parser.Char
 import Text.Parser.Token as Parser hiding ( symbolic )
 
-import Data.Functor
 import Data.Text
 import Data.Maybe
 

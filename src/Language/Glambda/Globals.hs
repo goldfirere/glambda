@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs, DataKinds, RankNTypes, FlexibleContexts #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 -----------------------------------------------------------------------------
 -- |

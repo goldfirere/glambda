@@ -19,7 +19,7 @@ module Language.Glambda.Util (
   render, toSimpleDoc, maybeParens, ($$),
   Prec, topPrec,
   stripWhitespace, nthDefault,
-  (:~:)(..)
+  (:~:)(..), void
   ) where
 
 import Text.Parsec
@@ -30,9 +30,14 @@ import Data.List
 
 #if __GLASGOW_HASKELL__ >= 707
 import Data.Type.Equality
+import Data.Functor
 #else
 data a :~: b where
   Refl :: a :~: a
+
+-- | Like 'Data.Functor.void'
+void :: Functor f => f a -> f ()
+void = (() <$)
 #endif
 
 instance Pretty ParseError where

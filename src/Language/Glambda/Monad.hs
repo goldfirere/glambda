@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, DefaultSignatures,
              FlexibleContexts, CPP, MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 -----------------------------------------------------------------------------
 -- |
