@@ -100,7 +100,7 @@ eitherToGlamE (Right x)  = return x
 -- | Run a 'Glam' computation
 runGlam :: Glam () -> InputT IO ()
 runGlam thing_inside
-  = void $ flip evalStateT emptyGlobals $ runMaybeT $ unGlam thing_inside
+  = ignore $ flip evalStateT emptyGlobals $ runMaybeT $ unGlam thing_inside
 
 -- | Run a 'GlamE' computation
 runGlamE :: GlamE a -> Glam (Either Doc a)

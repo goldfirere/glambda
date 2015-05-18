@@ -37,7 +37,7 @@ type Lexer = Parsec Text ()
 ---------------------------------------------------
 -- Utility
 text_ :: Text -> Lexer ()
-text_ = void . text
+text_ = ignore . text
 
 ---------------------------------------------------
 -- | Lex some program text into a list of 'LToken's, aborting upon failure
@@ -62,7 +62,7 @@ lexer1_ws
 -- | Lex some whitespace
 whitespace :: Lexer ()
 whitespace
-  = choice [ void $ some space
+  = choice [ ignore $ some space
            , block_comment
            , line_comment ]
 
@@ -84,7 +84,7 @@ comment_body
 line_comment :: Lexer ()
 line_comment = do
   try $ text_ "--"
-  void $ manyTill anyChar (eof <|> void newline)
+  ignore $ manyTill anyChar (eof <|> ignore newline)
 
 -- | Lex one token
 lexer1 :: Lexer LToken

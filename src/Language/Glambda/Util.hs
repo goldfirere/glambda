@@ -19,7 +19,7 @@ module Language.Glambda.Util (
   render, toSimpleDoc, maybeParens, ($$),
   Prec, topPrec,
   stripWhitespace, nthDefault,
-  (:~:)(..), void
+  (:~:)(..), ignore
   ) where
 
 import Text.Parsec
@@ -27,20 +27,18 @@ import Text.PrettyPrint.ANSI.Leijen as Pretty
 
 import Data.Char
 import Data.List
+import Data.Functor
 
 #if __GLASGOW_HASKELL__ >= 707
 import Data.Type.Equality
-import Data.Functor
 #else
-import Control.Applicative ( (<$) )
-
 data a :~: b where
   Refl :: a :~: a
+#endif
 
 -- | Like 'Data.Functor.void'
-void :: Functor f => f a -> f ()
-void = (() <$)
-#endif
+ignore :: Functor f => f a -> f ()
+ignore = (() <$)
 
 instance Pretty ParseError where
   pretty = text . show
