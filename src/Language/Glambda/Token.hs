@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections, GADTs, StandaloneDeriving #-}
+{-# LANGUAGE TupleSections, GADTs, StandaloneDeriving, DataKinds #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -37,8 +37,8 @@ import Data.List                      as List
 -- | An @ArithOp ty@ is an operator on numbers that produces a result
 -- of type @ty@
 data ArithOp ty where
-  Plus, Minus, Times, Divide, Mod        :: ArithOp IntTy
-  Less, LessE, Greater, GreaterE, Equals :: ArithOp BoolTy
+  Plus, Minus, Times, Divide, Mod        :: ArithOp 'IntTy
+  Less, LessE, Greater, GreaterE, Equals :: ArithOp 'BoolTy
 
 -- | 'UArithOp' ("unchecked 'ArithOp'") is an existential package for
 -- an 'ArithOp'

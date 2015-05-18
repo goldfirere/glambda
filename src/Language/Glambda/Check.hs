@@ -86,7 +86,7 @@ check = go emptyContext
       = go ctx e1 $ \sty1 e1' ->
         go ctx e2 $ \sty2 e2' ->
         case (sty1, sty2) of
-          (STyCon SIntTc, STyCon SIntTc)
+          (SIntTy, SIntTy)
             -> k sty (Arith e1' op e2')
           _ -> typeError e $
                text "Bad arith operand(s)." $$
@@ -98,7 +98,7 @@ check = go emptyContext
         go ctx e2 $ \sty2 e2' ->
         go ctx e3 $ \sty3 e3' ->
         case sty1 of
-          STyCon SBoolTc
+          SBoolTy
             |  Just Refl <- sty2 `eqSTy` sty3
             -> k sty2 (Cond e1' e2' e3')
           _ -> typeError e $

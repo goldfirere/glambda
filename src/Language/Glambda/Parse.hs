@@ -160,15 +160,15 @@ ty = chainr1 arg_ty (Arr <$ tok Arrow)
 
 arg_ty :: Parser Ty
 arg_ty = choice [ between (tok LParen) (tok RParen) ty
-                , TyCon <$> tycon ]
+                , tycon ]
 
-tycon :: Parser TyCon
+tycon :: Parser Ty
 tycon = do
   n <- tok' unName
   case readTyCon n of
     Nothing -> unexpected $ render $
                text "type" <+> squotes (text (unpack n))
-    Just tc -> return tc
+    Just ty -> return ty
 
 add_op, mul_op, bool_op :: Parser (UExp -> UExp -> UExp)
 add_op = mk_op <$> arith_op [uPlus, uMinus]

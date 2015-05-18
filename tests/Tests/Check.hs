@@ -26,27 +26,27 @@ import Test.Tasty
 import Test.Tasty.HUnit
 
 checkTestCases :: [(Text, Maybe (String, Ty, String))]
-checkTestCases = [ ("1", Just ("1", intTy, "1"))
+checkTestCases = [ ("1", Just ("1", IntTy, "1"))
                  , ("1 + true", Nothing)
                  , ("(\\x:Int.x) 5",
-                    Just ("(λ#. #0) 5", intTy, "5"))
+                    Just ("(λ#. #0) 5", IntTy, "5"))
                  , ("(\\x:Int.\\y:Int->Int.y x) 4 (\\z:Int.z*2)",
                     Just ("(λ#. λ#. #0 #1) 4 (λ#. #0 * 2)",
-                          intTy, "8"))
+                          IntTy, "8"))
                  , ("1 + 2 * 3 / 4 - 10 % 3",
-                    Just ("1 + 2 * 3 / 4 - 10 % 3", intTy, "1"))
+                    Just ("1 + 2 * 3 / 4 - 10 % 3", IntTy, "1"))
                  , ("if true then 1 else false", Nothing)
                  , ("if 3 - 1 == 2 then \\x:Int.x else \\x:Int.3",
                     Just ("if 3 - 1 == 2 then λ#. #0 else λ#. 3",
-                          intTy `Arr` intTy, "λ#. #0"))
-                 , ("1 > 2", Just ("1 > 2", boolTy, "false"))
-                 , ("2 > 1", Just ("2 > 1", boolTy, "true"))
-                 , ("1 > 1", Just ("1 > 1", boolTy, "false"))
-                 , ("1 >= 1", Just ("1 >= 1", boolTy, "true"))
-                 , ("1 < 2", Just ("1 < 2", boolTy, "true"))
-                 , ("1 < 1", Just ("1 < 1", boolTy, "false"))
-                 , ("1 <= 1", Just ("1 <= 1", boolTy, "true"))
-                 , ("id_int (id_int 5)", Just ("(λ#. #0) ((λ#. #0) 5)", intTy, "5"))
+                          IntTy `Arr` IntTy, "λ#. #0"))
+                 , ("1 > 2", Just ("1 > 2", BoolTy, "false"))
+                 , ("2 > 1", Just ("2 > 1", BoolTy, "true"))
+                 , ("1 > 1", Just ("1 > 1", BoolTy, "false"))
+                 , ("1 >= 1", Just ("1 >= 1", BoolTy, "true"))
+                 , ("1 < 2", Just ("1 < 2", BoolTy, "true"))
+                 , ("1 < 1", Just ("1 < 1", BoolTy, "false"))
+                 , ("1 <= 1", Just ("1 <= 1", BoolTy, "true"))
+                 , ("id_int (id_int 5)", Just ("(λ#. #0) ((λ#. #0) 5)", IntTy, "5"))
                  ]
 
 checkTests :: TestTree
@@ -67,4 +67,4 @@ checkTests = testGroup "Typechecker" $
                   Right b -> b)) checkTestCases
 
 id_globals :: Globals
-id_globals = extend "id_int" (sIntTy `SArr` sIntTy) (Lam (Var EZ)) emptyGlobals
+id_globals = extend "id_int" (SIntTy `SArr` SIntTy) (Lam (Var EZ)) emptyGlobals

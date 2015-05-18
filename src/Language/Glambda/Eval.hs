@@ -84,7 +84,7 @@ apply :: Val '[] (arg '`Arr` res) -> Exp '[] arg -> Exp '[] res
 apply (LamVal body) arg = subst arg body
 
 -- | Apply an arithmetic operator to two values.
-arith :: Val '[] IntTy -> ArithOp ty -> Val '[] IntTy -> Val '[] ty
+arith :: Val '[] 'IntTy -> ArithOp ty -> Val '[] 'IntTy -> Val '[] ty
 arith (IntVal n1) Plus     (IntVal n2) = IntVal (n1 + n2)
 arith (IntVal n1) Minus    (IntVal n2) = IntVal (n1 - n2)
 arith (IntVal n1) Times    (IntVal n2) = IntVal (n1 * n2)
@@ -97,7 +97,7 @@ arith (IntVal n1) GreaterE (IntVal n2) = BoolVal (n1 >= n2)
 arith (IntVal n1) Equals   (IntVal n2) = BoolVal (n1 == n2)
 
 -- | Conditionally choose between two expressions
-cond :: Val '[] BoolTy -> Exp '[] t -> Exp '[] t -> Exp '[] t
+cond :: Val '[] 'BoolTy -> Exp '[] t -> Exp '[] t -> Exp '[] t
 cond (BoolVal True)  e _ = e
 cond (BoolVal False) _ e = e
 

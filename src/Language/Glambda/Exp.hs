@@ -46,16 +46,16 @@ data Exp :: [Ty] -> Ty -> * where
   Var   :: Elem ctx ty -> Exp ctx ty
   Lam   :: Exp (arg ': ctx) res -> Exp ctx (arg '`Arr` res)
   App   :: Exp ctx (arg '`Arr` res) -> Exp ctx arg -> Exp ctx res
-  Arith :: Exp ctx IntTy -> ArithOp ty -> Exp ctx IntTy -> Exp ctx ty
-  Cond  :: Exp ctx BoolTy -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
+  Arith :: Exp ctx 'IntTy -> ArithOp ty -> Exp ctx 'IntTy -> Exp ctx ty
+  Cond  :: Exp ctx 'BoolTy -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
   Fix   :: Exp ctx (ty '`Arr` ty) -> Exp ctx ty
-  IntE  :: Integer -> Exp ctx IntTy
-  BoolE :: Bool -> Exp ctx BoolTy
+  IntE  :: Integer -> Exp ctx 'IntTy
+  BoolE :: Bool -> Exp ctx 'BoolTy
 
 -- | Well-typed values
 data Val :: [Ty] -> Ty -> * where
-  IntVal  :: Integer -> Val ctx IntTy
-  BoolVal :: Bool -> Val ctx BoolTy
+  IntVal  :: Integer -> Val ctx 'IntTy
+  BoolVal :: Bool -> Val ctx 'BoolTy
   LamVal  :: Exp (arg ': ctx) res -> Val ctx (arg '`Arr` res)
 
 -- | Inject a value back into an expression
