@@ -32,6 +32,8 @@ import Data.List
 import Data.Type.Equality
 import Data.Functor
 #else
+import Control.Applicative ( (<$) )
+
 data a :~: b where
   Refl :: a :~: a
 
