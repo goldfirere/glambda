@@ -55,6 +55,8 @@ shift = go LZ
     shift_elem (LS _) EZ     = EZ
     shift_elem (LS l) (ES e) = ES (shift_elem l e)
 
+-- | Substitute the first expression into the second. As a proposition,
+-- this is the substitution lemma.
 subst :: forall ts2 s t.
          Exp ts2 s -> Exp (s ': ts2) t -> Exp ts2 t
 subst e = go LZ
@@ -77,25 +79,29 @@ subst e = go LZ
     subst_var (LS _) EZ       = Var EZ
     subst_var (LS len) (ES v) = shift (subst_var len v)
 
+-- | Given a lambda and an expression, beta-reduce.
 apply :: Val '[] (arg '`Arr` res) -> Exp '[] arg -> Exp '[] res
 apply (LamVal body) arg = subst arg body
 
+-- | Apply an arithmetic operator to two values.
 arith :: Val '[] IntTy -> ArithOp ty -> Val '[] IntTy -> Val '[] ty
-arith (IntVal n1) Plus (IntVal n2)     = IntVal (n1 + n2)
-arith (IntVal n1) Minus (IntVal n2)    = IntVal (n1 - n2)
-arith (IntVal n1) Times (IntVal n2)    = IntVal (n1 * n2)
-arith (IntVal n1) Divide (IntVal n2)   = IntVal (n1 `div` n2)
-arith (IntVal n1) Mod (IntVal n2)      = IntVal (n1 `mod` n2)
-arith (IntVal n1) Less (IntVal n2)     = BoolVal (n1 < n2)
-arith (IntVal n1) LessE (IntVal n2)    = BoolVal (n1 <= n2)
-arith (IntVal n1) Greater (IntVal n2)  = BoolVal (n1 > n2)
+arith (IntVal n1) Plus     (IntVal n2) = IntVal (n1 + n2)
+arith (IntVal n1) Minus    (IntVal n2) = IntVal (n1 - n2)
+arith (IntVal n1) Times    (IntVal n2) = IntVal (n1 * n2)
+arith (IntVal n1) Divide   (IntVal n2) = IntVal (n1 `div` n2)
+arith (IntVal n1) Mod      (IntVal n2) = IntVal (n1 `mod` n2)
+arith (IntVal n1) Less     (IntVal n2) = BoolVal (n1 < n2)
+arith (IntVal n1) LessE    (IntVal n2) = BoolVal (n1 <= n2)
+arith (IntVal n1) Greater  (IntVal n2) = BoolVal (n1 > n2)
 arith (IntVal n1) GreaterE (IntVal n2) = BoolVal (n1 >= n2)
-arith (IntVal n1) Equals (IntVal n2)   = BoolVal (n1 == n2)
+arith (IntVal n1) Equals   (IntVal n2) = BoolVal (n1 == n2)
 
+-- | Conditionally choose between two expressions
 cond :: Val '[] BoolTy -> Exp '[] t -> Exp '[] t -> Exp '[] t
 cond (BoolVal True)  e _ = e
 cond (BoolVal False) _ e = e
 
+-- | Unroll a `fix` one level
 unfix :: Val '[] (ty '`Arr` ty) -> Exp '[] ty
 unfix (LamVal body) = subst (Fix (Lam body)) body
 

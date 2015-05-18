@@ -33,8 +33,7 @@ data Elem :: [a] -> a -> * where
   EZ :: Elem (x ': xs) x
   ES :: Elem xs x -> Elem (y ': xs) x
 
-
--- | Convert an 'Elem' to a proper deBruijn index
+-- | Convert an 'Elem' to a proper de Bruijn index
 elemToInt :: Elem ctx ty -> Int
 elemToInt EZ     = 0
 elemToInt (ES e) = 1 + elemToInt e
@@ -61,23 +60,23 @@ data Val :: [Ty] -> Ty -> * where
 
 -- | Inject a value back into an expression
 val :: Val ctx ty -> Exp ctx ty
-val (IntVal n) = IntE n
-val (BoolVal n) = BoolE n
+val (IntVal n)    = IntE n
+val (BoolVal n)   = BoolE n
 val (LamVal body) = Lam body
 
 ----------------------------------------------------
--- | Equality on expressions
+-- | Equality on expressions, needed for testing
 eqExp :: Exp ctx1 ty1 -> Exp ctx2 ty2 -> Bool
-eqExp (Var e1) (Var e2) = elemToInt e1 == elemToInt e2
-eqExp (Lam body1) (Lam body2) = body1 `eqExp` body2
+eqExp (Var e1)      (Var e2)      = elemToInt e1 == elemToInt e2
+eqExp (Lam body1)   (Lam body2)   = body1 `eqExp` body2
 eqExp (App e1a e1b) (App e2a e2b) = e1a `eqExp` e2a && e1b `eqExp` e2b
 eqExp (Arith e1a op1 e1b) (Arith e2a op2 e2b)
   = e1a `eqExp` e2a && op1 `eqArithOp` op2 && e1b `eqExp` e2b
 eqExp (Cond e1a e1b e1c) (Cond e2a e2b e2c)
   = e1a `eqExp` e2a && e1b `eqExp` e2b && e1c `eqExp` e2c
-eqExp (IntE i1) (IntE i2) = i1 == i2
-eqExp (BoolE b1) (BoolE b2) = b1 == b2
-eqExp _ _ = False
+eqExp (IntE i1)     (IntE i2)     = i1 == i2
+eqExp (BoolE b1)    (BoolE b2)    = b1 == b2
+eqExp _             _             = False
 
 ----------------------------------------------------
 -- Pretty-printing
