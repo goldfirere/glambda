@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes, DataKinds, PolyKinds, GADTs, FlexibleContexts, CPP #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 #ifdef __HADDOCK_VERSION__
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
@@ -19,7 +20,7 @@
 module Language.Glambda.Check ( check ) where
 
 import Language.Glambda.Exp
-import Language.Glambda.Eval
+import Language.Glambda.Shift
 import Language.Glambda.Token
 import Language.Glambda.Type
 import Language.Glambda.Unchecked

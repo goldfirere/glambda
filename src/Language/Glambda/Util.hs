@@ -27,7 +27,10 @@ import Text.PrettyPrint.ANSI.Leijen as Pretty
 
 import Data.Char
 import Data.List
+
+#if __GLASGOW_HASKELL__ < 709
 import Data.Functor
+#endif
 
 #if __GLASGOW_HASKELL__ >= 707
 import Data.Type.Equality
