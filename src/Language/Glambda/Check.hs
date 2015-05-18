@@ -33,7 +33,6 @@ import Text.PrettyPrint.ANSI.Leijen
 
 import Control.Monad.Reader
 import Control.Monad.Error
-import Data.Type.Equality
 
 -- | Abort with a type error in the given expression
 typeError :: MonadError Doc m => UExp -> Doc -> m a

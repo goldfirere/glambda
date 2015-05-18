@@ -26,7 +26,6 @@ module Language.Glambda.Type (
 import Language.Glambda.Util
 
 import Text.PrettyPrint.ANSI.Leijen
-import Data.Type.Equality
 import Data.Text
 
 -- | A type constant

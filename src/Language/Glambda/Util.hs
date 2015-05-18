@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, PolyKinds #-}
+{-# LANGUAGE GADTs, PolyKinds, TypeOperators, CPP #-}
 {-# OPTIONS_GHC -fno-warn-orphans -fno-warn-warnings-deprecations #-}
 
 -----------------------------------------------------------------------------
@@ -18,7 +18,8 @@
 module Language.Glambda.Util (
   render, toSimpleDoc, maybeParens, ($$),
   Prec, topPrec,
-  stripWhitespace, nthDefault
+  stripWhitespace, nthDefault,
+  (:~:)(..)
   ) where
 
 import Text.Parsec
@@ -26,6 +27,13 @@ import Text.PrettyPrint.ANSI.Leijen as Pretty
 
 import Data.Char
 import Data.List
+
+#if __GLASGOW_HASKELL__ >= 707
+import Data.Type.Equality
+#else
+data a :~: b where
+  Refl :: a :~: a
+#endif
 
 instance Pretty ParseError where
   pretty = text . show
