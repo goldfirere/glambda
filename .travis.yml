@@ -28,8 +28,8 @@ install:
 # Here starts the actual work to be performed for the package under test; any command which exits with a non-zero exit code causes the build to fail.
 script:
  - if [ -f configure.ac ]; then autoreconf -i; fi
- - cabal configure --enable-tests --enable-benchmarks -v2 --ghc-options="-Werror -Wall" # -v2 provides useful information for debugging
- - cabal build --ghc-options="-Werror -Wall"  # this builds all libraries and executables (including tests/benchmarks)
+ - cabal configure --enable-tests --enable-benchmarks -v2 --ghc-options="-Werror" # -v2 provides useful information for debugging
+ - cabal build --ghc-options="-Werror"  # this builds all libraries and executables (including tests/benchmarks)
  - cabal test
  - cabal check
  - cabal sdist   # tests that a source-distribution can be generated
