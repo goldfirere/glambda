@@ -28,9 +28,9 @@ data Length :: [a] -> * where
   LZ :: Length '[]
   LS :: Length xs -> Length (x ': xs)
 
-type family xs ++ ys where
-  '[]       ++ ys = ys
-  (x ': xs) ++ ys = x ': (xs ++ ys)
+type family (xs :: [a]) ++ (ys :: [a]) :: [a]
+type instance '[]       ++ ys = ys
+type instance (x ': xs) ++ ys = x ': (xs ++ ys)
 infixr 5 ++
 
 -- | Convert an expression typed in one context to one typed in a larger
