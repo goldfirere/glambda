@@ -20,7 +20,6 @@ module Language.Glambda.Exp (
 
 import Language.Glambda.Pretty
 import Language.Glambda.Token
-import Language.Glambda.Type
 import Language.Glambda.Util
 
 import Text.PrettyPrint.ANSI.Leijen
@@ -42,21 +41,21 @@ elemToInt (ES e) = 1 + elemToInt e
 -- @ctx@. Note that a context is a list of types, where a type's index
 -- in the list indicates the de Bruijn index of the associated term-level
 -- variable.
-data Exp :: [Ty] -> Ty -> * where
+data Exp :: [*] -> * -> * where
   Var   :: Elem ctx ty -> Exp ctx ty
-  Lam   :: Exp (arg ': ctx) res -> Exp ctx (arg '`Arr` res)
-  App   :: Exp ctx (arg '`Arr` res) -> Exp ctx arg -> Exp ctx res
-  Arith :: Exp ctx 'IntTy -> ArithOp ty -> Exp ctx 'IntTy -> Exp ctx ty
-  Cond  :: Exp ctx 'BoolTy -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
-  Fix   :: Exp ctx (ty '`Arr` ty) -> Exp ctx ty
-  IntE  :: Integer -> Exp ctx 'IntTy
-  BoolE :: Bool -> Exp ctx 'BoolTy
+  Lam   :: Exp (arg ': ctx) res -> Exp ctx (arg -> res)
+  App   :: Exp ctx (arg -> res) -> Exp ctx arg -> Exp ctx res
+  Arith :: Exp ctx Int -> ArithOp ty -> Exp ctx Int -> Exp ctx ty
+  Cond  :: Exp ctx Bool -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
+  Fix   :: Exp ctx (ty -> ty) -> Exp ctx ty
+  IntE  :: Integer -> Exp ctx Int
+  BoolE :: Bool -> Exp ctx Bool
 
 -- | Well-typed values
-data Val :: [Ty] -> Ty -> * where
-  IntVal  :: Integer -> Val ctx 'IntTy
-  BoolVal :: Bool -> Val ctx 'BoolTy
-  LamVal  :: Exp (arg ': ctx) res -> Val ctx (arg '`Arr` res)
+data Val :: [*] -> * -> * where
+  IntVal  :: Integer -> Val ctx Int
+  BoolVal :: Bool -> Val ctx Bool
+  LamVal  :: Exp (arg ': ctx) res -> Val ctx (arg -> res)
 
 -- | Inject a value back into an expression
 val :: Val ctx ty -> Exp ctx ty

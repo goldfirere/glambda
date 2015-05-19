@@ -41,25 +41,25 @@ readTyCon "Bool" = Just BoolTy
 readTyCon _      = Nothing
 
 -- | Singleton for a glambda type
-data STy :: Ty -> * where
-  SArr    :: STy arg -> STy res -> STy (arg '`Arr` res)
-  SIntTy  :: STy 'IntTy
-  SBoolTy :: STy 'BoolTy
+data STy :: * -> * where
+  SArr    :: STy arg -> STy res -> STy (arg -> res)
+  SIntTy  :: STy Int
+  SBoolTy :: STy Bool
 infixr 1 `SArr`
 
 -- | An implicit 'STy', wrapped up in a class constraint
-class ITy (ty :: Ty) where
+class ITy ty where
   sty :: STy ty
 
-instance (ITy arg, ITy res) => ITy (arg '`Arr` res) where
+instance (ITy arg, ITy res) => ITy (arg -> res) where
   sty = sty `SArr` sty
-instance ITy 'IntTy where
+instance ITy Int where
   sty = SIntTy
-instance ITy 'BoolTy where
+instance ITy Bool where
   sty = SBoolTy
 
 -- | Singleton for a typing context
-data SCtx :: [Ty] -> * where
+data SCtx :: [*] -> * where
   SNil  :: SCtx '[]
   SCons :: STy h -> SCtx t -> SCtx (h ': t)
 infixr 5 `SCons`
