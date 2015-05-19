@@ -1,6 +1,7 @@
 {-# LANGUAGE RankNTypes, TypeOperators, ScopedTypeVariables,
              DataKinds, TypeFamilies, PolyKinds,
              GADTs #-}
+{-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 
 -----------------------------------------------------------------------------
 -- |
