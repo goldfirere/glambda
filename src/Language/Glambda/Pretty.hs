@@ -32,7 +32,6 @@ import Language.Glambda.Type
 import Language.Glambda.Util
 
 import Text.PrettyPrint.ANSI.Leijen
-import Data.Stream
 
 lamPrec, appPrec, appLeftPrec, appRightPrec, ifPrec :: Prec
 lamPrec = 1
@@ -63,7 +62,7 @@ precInfo Equals   = (4, 4, 4)
 type ApplyColor = Doc -> Doc
 
 -- | Information about coloring in de Bruijn indexes and binders
-data Coloring = Coloring (Stream ApplyColor)
+data Coloring = Coloring [ApplyColor]
                          [ApplyColor]  -- ^ a stream of remaining colors to use,
                                        -- and the colors used for bound variables
 
@@ -71,8 +70,8 @@ data Coloring = Coloring (Stream ApplyColor)
 defaultColoring :: Coloring
 defaultColoring = Coloring all_colors []
   where
-    all_colors = red <:> green <:> yellow <:> blue <:>
-                 magenta <:> cyan <:> all_colors
+    all_colors = red : green : yellow : blue :
+                 magenta : cyan : all_colors
 
 -- | A class for expressions that can be pretty-printed
 class Pretty exp => PrettyExp exp where
@@ -87,11 +86,12 @@ prettyVar (Coloring _ bound) n = (nthDefault id n bound) (char '#' <> int n)
 
 -- | Print a lambda expression
 prettyLam :: PrettyExp exp => Coloring -> Prec -> Maybe Ty -> exp -> Doc
-prettyLam (Coloring (next `Cons` supply) existing) prec m_ty body
+prettyLam (Coloring (next : supply) existing) prec m_ty body
   = maybeParens (prec >= lamPrec) $
     fillSep [ char 'λ' <> next (char '#') <>
               maybe empty (\ty -> text ":" <> pretty ty) m_ty <> char '.'
             , prettyExp (Coloring supply (next : existing)) topPrec body ]
+prettyLam _ _ _ _ = error "Infinite supply of colors ran out"
 
 -- | Print an application
 prettyApp :: (PrettyExp exp1, PrettyExp exp2)

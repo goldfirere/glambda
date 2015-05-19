@@ -35,7 +35,6 @@ import Text.Parsec.Combinator
 import Text.PrettyPrint.ANSI.Leijen hiding ( (<$>) )
 
 import Data.List as List
-import Data.Text as Text
 
 import Control.Applicative
 import Control.Arrow as Arrow ( left )
@@ -75,10 +74,10 @@ parse p tokens = Arrow.left show $
 
 -- the "state" is a list of bound names. searching a bound name in the list
 -- gives you the correct deBruijn index
-type Parser = ParsecT [LToken] () (Reader [Text])
+type Parser = ParsecT [LToken] () (Reader [String])
 
 -- | Bind a name over an expression
-bind :: Text -> Parser a -> Parser a
+bind :: String -> Parser a -> Parser a
 bind bound_var thing_inside
   = local (bound_var :) thing_inside
 
@@ -167,7 +166,7 @@ tycon = do
   n <- tok' unName
   case readTyCon n of
     Nothing -> unexpected $ render $
-               text "type" <+> squotes (text (unpack n))
+               text "type" <+> squotes (text n)
     Just ty -> return ty
 
 add_op, mul_op, bool_op :: Parser (UExp -> UExp -> UExp)

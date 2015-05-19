@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, FlexibleInstances,
+{-# LANGUAGE FlexibleInstances,
              UndecidableInstances, CPP, ViewPatterns,
              NondecreasingIndentation #-}
 #if __GLASGOW_HASKELL__ < 709
@@ -37,8 +37,6 @@ import Text.PrettyPrint.ANSI.Leijen as Pretty hiding ( (<$>) )
 import System.Console.Haskeline
 import System.Directory
 
-import Data.Text as Text
-import Data.Text.IO as Text
 import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
@@ -62,7 +60,7 @@ loop = do
   case stripWhitespace <$> m_line of
     Nothing          -> quit
     Just (':' : cmd) -> runCommand cmd
-    Just str         -> runStmts (pack str)
+    Just str         -> runStmts str
   loop
 
 -- | Prints welcome message
@@ -95,7 +93,7 @@ version = "1.0"
 -------------------------------------------
 -- running statements
 
-runStmts :: Text -> Glam ()
+runStmts :: String -> Glam ()
 runStmts str = reportErrors $ do
     toks <- lexG str
     stmts <- parseStmtsG toks
@@ -113,7 +111,7 @@ doStmt (BareExp uexp) thing_inside = check uexp $ \sty exp -> do
   printLine $ printWithType (eval exp) sty
   thing_inside
 doStmt (NewGlobal g uexp) thing_inside = check uexp $ \sty exp -> do
-  printLine $ text (unpack g) <+> char '=' <+> printWithType exp sty
+  printLine $ text g <+> char '=' <+> printWithType exp sty
   local (extend g sty exp) thing_inside
 
 -------------------------------------------
@@ -130,7 +128,7 @@ dispatchCommand table line
   = case List.filter ((cmd `List.isPrefixOf`) . fst) table of
       []            -> do printLine $ text "Unknown command:" <+> squotes (text cmd)
       [(_, action)] -> action arg
-      many          -> do printLine $ "Ambiguous command:" <+> squotes (text cmd)
+      many          -> do printLine $ text "Ambiguous command:" <+> squotes (text cmd)
                           printLine $ text "Possibilities:" $$
                                       indent 2 (vcat $ List.map (text . fst) many)
   where (cmd, arg) = List.break isSpace line
@@ -169,7 +167,7 @@ reportErrors thing_inside = do
   put new_globals
 
 parseLex :: String -> GlamE UExp
-parseLex = (parseExpG <=< lexG) . pack
+parseLex = parseExpG <=< lexG
 
 printWithType :: (Pretty exp, Pretty ty) => exp -> ty -> Doc
 printWithType exp ty
@@ -177,7 +175,7 @@ printWithType exp ty
 
 lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd, loadCmd
   :: String -> Glam ()
-lexCmd expr = reportErrors $ lexG (pack expr)
+lexCmd expr = reportErrors $ lexG expr
 parseCmd = reportErrors . parseLex
 
 evalCmd expr = reportErrors $ do
@@ -212,7 +210,7 @@ allCmd expr = do
 loadCmd (stripWhitespace -> file) = do
   file_exists <- liftIO $ doesFileExist file
   if not file_exists then file_not_found else do
-  contents <- liftIO $ Text.readFile file
+  contents <- liftIO $ readFile file
   runStmts contents
   where
     file_not_found = do

@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, DataKinds, TypeOperators, PolyKinds,
+{-# LANGUAGE DataKinds, TypeOperators, PolyKinds,
              GADTs, RankNTypes, FlexibleInstances #-}
 
 -----------------------------------------------------------------------------
@@ -25,7 +25,6 @@ module Language.Glambda.Type (
 import Language.Glambda.Util
 
 import Text.PrettyPrint.ANSI.Leijen
-import Data.Text
 
 -- | Representation of a glambda type
 data Ty
@@ -36,7 +35,7 @@ data Ty
 infixr 1 `Arr`
 
 -- | Perhaps convert a string representation of a base type into a 'Ty'
-readTyCon :: Text -> Maybe Ty
+readTyCon :: String -> Maybe Ty
 readTyCon "Int"  = Just IntTy
 readTyCon "Bool" = Just BoolTy
 readTyCon _      = Nothing

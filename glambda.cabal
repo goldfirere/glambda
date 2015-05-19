@@ -30,11 +30,8 @@ library
                     , errors >= 1.4.6
                     , mtl >= 2.1.3.1
                     , containers >= 0.5
-                    , text >= 1.1
                     , parsec >= 3.1
                     , haskeline >= 0.7.1.1
-                    , Stream >= 0.4.7.1
-                    , parsers >= 0.12
                     , directory >= 1.2.0.1
 
 
@@ -85,7 +82,6 @@ test-suite tests
                     , ansi-wl-pprint >= 0.6.7.1
                     , errors >= 1.4.6
                     , mtl >= 2.1.3.1
-                    , text >= 1.1
                     , parsec >= 3.1
-                    , tasty >= 0.10
+                    , tasty >= 0.8.1
                     , tasty-hunit >= 0.9

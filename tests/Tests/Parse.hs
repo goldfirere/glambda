@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Tests.Parse where
 
 import Language.Glambda.Lex
@@ -11,10 +9,9 @@ import Prelude hiding ( lex )
 
 import Text.PrettyPrint.ANSI.Leijen
 
-import Data.Text as Text
 import Data.List as List
 
-parseTestCases :: [(Text, Text)]
+parseTestCases :: [(String, String)]
 parseTestCases = [ ("\\x:Int.x", "λ#:Int. #0")
                  , ("\\x:Int.\\y:Int.x", "λ#:Int. λ#:Int. #1")
                  , ("\\x:Int.\\x:Int.x", "λ#:Int. λ#:Int. #0")
@@ -30,19 +27,19 @@ parseTestCases = [ ("\\x:Int.x", "λ#:Int. #0")
                  , ("\\x:Int.y", "λ#:Int. y")
                  ]
 
-parserFailTestCases :: [Text]
+parserFailTestCases :: [String]
 parserFailTestCases = [ " {- "
                       , "{-{- -}" ]
 
 parseTests :: TestTree
 parseTests = testGroup "Parser"
   [ testGroup "Success" $
-    List.map (\(str, out) -> testCase ("`" ++ unpack str ++ "'") $
+    List.map (\(str, out) -> testCase ("`" ++ str ++ "'") $
               (render $ plain $ pretty (parseExp =<< lex str)) @?=
-                ("Right " ++ unpack out))
+                ("Right " ++ out))
              parseTestCases
   , testGroup "Failure" $
-    List.map (\str -> testCase ("`" ++ unpack str ++ "'") $
+    List.map (\str -> testCase ("`" ++ str ++ "'") $
               (case parseExp =<< lex str of Left _ -> True; _ -> False) @?
               "parse erroneously successful")
              parserFailTestCases ]

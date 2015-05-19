@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, OverloadedStrings #-}
+{-# LANGUAGE GADTs #-}
 
 module Tests.Check where
 
@@ -16,7 +16,6 @@ import Language.Glambda.Util
 import Control.Error
 import Control.Monad.Reader
 
-import Data.Text
 import Text.PrettyPrint.ANSI.Leijen
 
 import Data.List as List
@@ -25,7 +24,7 @@ import Control.Arrow as Arrow
 import Test.Tasty
 import Test.Tasty.HUnit
 
-checkTestCases :: [(Text, Maybe (String, Ty, String))]
+checkTestCases :: [(String, Maybe (String, Ty, String))]
 checkTestCases = [ ("1", Just ("1", IntTy, "1"))
                  , ("1 + true", Nothing)
                  , ("(\\x:Int.x) 5",
@@ -52,7 +51,7 @@ checkTestCases = [ ("1", Just ("1", IntTy, "1"))
 checkTests :: TestTree
 checkTests = testGroup "Typechecker" $
   List.map (\(expr_str, m_result) ->
-               testCase ("`" ++ unpack expr_str ++ "'") $
+               testCase ("`" ++ expr_str ++ "'") $
                (case flip runReader id_globals $ runEitherT $ do
                        uexp <- hoistEither $ Arrow.left text $ parseExp =<< lex expr_str
                        check uexp $ \sty exp -> return $

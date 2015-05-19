@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 -----------------------------------------------------------------------------
 -- |
 -- Module      :  Language.Glambda.Lex
@@ -22,30 +20,29 @@ import Language.Glambda.Util
 
 import Text.Parsec.Prim  ( Parsec, parse, getPosition, try )
 import Text.Parsec.Combinator
+import Text.Parsec.Char
+import Text.Parsec.Token as Parsec
+import Text.Parsec.Language
 
-import Text.Parser.Char
-import Text.Parser.Token as Parser hiding ( symbolic )
-
-import Data.Text
 import Data.Maybe
 
 import Control.Applicative
 import Control.Arrow as Arrow
 
-type Lexer = Parsec Text ()
+type Lexer = Parsec String ()
 
 ---------------------------------------------------
 -- Utility
-text_ :: Text -> Lexer ()
-text_ = ignore . text
+string_ :: String -> Lexer ()
+string_ = ignore . string
 
 ---------------------------------------------------
 -- | Lex some program text into a list of 'LToken's, aborting upon failure
-lexG :: Text -> GlamE [LToken]
+lexG :: String -> GlamE [LToken]
 lexG = eitherToGlamE . lex
 
 -- | Lex some program text into a list of 'LToken's
-lex :: Text -> Either String [LToken]
+lex :: String -> Either String [LToken]
 lex = Arrow.left show . parse lexer ""
 
 -- | Overall lexer
@@ -70,20 +67,20 @@ whitespace
 -- if the target doesn't start with @{-@.
 block_comment :: Lexer ()
 block_comment = do
-  try $ text_ "{-"
+  try $ string_ "{-"
   comment_body
 
 -- | Lex a block comment, without the opening "{-"
 comment_body :: Lexer ()
 comment_body
   = choice [ block_comment *> comment_body
-           , try $ text_ "-}"
+           , try $ string_ "-}"
            , anyChar *> comment_body ]
 
 -- | Lex a line comment
 line_comment :: Lexer ()
 line_comment = do
-  try $ text_ "--"
+  try $ string_ "--"
   ignore $ manyTill anyChar (eof <|> ignore newline)
 
 -- | Lex one token
@@ -92,7 +89,7 @@ lexer1 = do
   pos <- getPosition
   L pos <$> choice [ symbolic
                    , word_token
-                   , Integer <$> Parser.natural ]
+                   , Integer <$> Parsec.natural haskell ]
 
 -- | Lex one non-alphanumeric token
 symbolic :: Lexer Token
@@ -100,7 +97,7 @@ symbolic = choice [ LParen  <$  char '('
                   , RParen  <$  char ')'
                   , Lambda  <$  char '\\'
                   , Dot     <$  char '.'
-                  , Arrow   <$  try (text "->")
+                  , Arrow   <$  try (string "->")
                   , Colon   <$  char ':'
                   , ArithOp <$> arith_op
                   , Assign  <$  char '='
@@ -113,11 +110,11 @@ arith_op = choice [ UArithOp Plus     <$ char '+'
                   , UArithOp Times    <$ char '*'
                   , UArithOp Divide   <$ char '/'
                   , UArithOp Mod      <$ char '%'
-                  , UArithOp LessE    <$ try (text "<=")
+                  , UArithOp LessE    <$ try (string "<=")
                   , UArithOp Less     <$ char '<'
-                  , UArithOp GreaterE <$ try (text ">=")
+                  , UArithOp GreaterE <$ try (string ">=")
                   , UArithOp Greater  <$ char '>'
-                  , UArithOp Equals   <$ try (text "==")]
+                  , UArithOp Equals   <$ try (string "==")]
 
 -- | Lex one alphanumeric token
 word_token :: Lexer Token
@@ -132,6 +129,6 @@ word_token = to_token <$> word
     to_token other   = Name other
 
 -- | Lex one word
-word :: Lexer Text
-word = pack <$> ((:) <$> (letter <|> char '_') <*>
-                         (many (alphaNum <|> char '_')))
+word :: Lexer String
+word = ((:) <$> (letter <|> char '_') <*>
+                 (many (alphaNum <|> char '_')))

@@ -24,7 +24,6 @@ import Text.PrettyPrint.ANSI.Leijen
 import Control.Monad.Error
 
 import Data.Map as Map
-import Data.Text
 
 -- | An existential wrapper around 'Exp', storing the expression and
 -- its type.
@@ -33,21 +32,21 @@ data EExp where
 
 -- | The global variable environment maps variables to type-checked
 -- expressions
-newtype Globals = Globals (Map Text EExp)
+newtype Globals = Globals (Map String EExp)
 
 -- | An empty global variable environment
 emptyGlobals :: Globals
 emptyGlobals = Globals Map.empty
 
 -- | Extend a 'Globals' with a new binding
-extend :: Text -> STy ty -> Exp '[] ty -> Globals -> Globals
+extend :: String -> STy ty -> Exp '[] ty -> Globals -> Globals
 extend var sty exp (Globals globals)
   = Globals $ Map.insert var (EExp sty exp) globals
 
 -- | Lookup a global variable. Fails with 'throwError' if the variable
 -- is not bound.
 lookupGlobal :: MonadError Doc m
-             => Globals -> Text
+             => Globals -> String
              -> (forall ty. STy ty -> Exp '[] ty -> m r)
              -> m r
 lookupGlobal (Globals globals) var k
@@ -55,4 +54,4 @@ lookupGlobal (Globals globals) var k
       Just (EExp sty exp) -> k sty exp
       Nothing             -> throwError $
                              text "Global variable not in scope:" <+>
-                               squotes (text $ unpack var)
+                               squotes (text var)

@@ -15,14 +15,13 @@ module Language.Glambda.Statement ( Statement(..) ) where
 
 import Language.Glambda.Unchecked
 
-import Data.Text
 import Text.PrettyPrint.ANSI.Leijen
 
 -- | A statement can either be a bare expression, which will be evaluated,
 -- or an assignment to a global variable.
 data Statement = BareExp UExp
-               | NewGlobal Text UExp
+               | NewGlobal String UExp
 
 instance Pretty Statement where
   pretty (BareExp exp)     = pretty exp
-  pretty (NewGlobal v exp) = text (unpack v) <+> char '=' <+> pretty exp
+  pretty (NewGlobal v exp) = text v <+> char '=' <+> pretty exp

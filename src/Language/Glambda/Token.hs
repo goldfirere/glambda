@@ -28,7 +28,6 @@ module Language.Glambda.Token (
 import Language.Glambda.Type
 import Language.Glambda.Util
 
-import Data.Text                      as Text
 import Text.PrettyPrint.ANSI.Leijen  as Pretty
 import Text.Parsec.Pos ( SourcePos )
 
@@ -95,7 +94,7 @@ data Token
   | FixT
   | Assign
   | Semi
-  | Name Text
+  | Name String
     deriving Eq
 
 -- | Perhaps extract a 'UArithOp'
@@ -113,8 +112,8 @@ unBool :: Token -> Maybe Bool
 unBool (Bool x) = Just x
 unBool _           = Nothing
 
--- | Perhaps extract a 'Text'
-unName :: Token -> Maybe Text
+-- | Perhaps extract a 'String'
+unName :: Token -> Maybe String
 unName (Name x) = Just x
 unName _        = Nothing
 
@@ -186,7 +185,7 @@ printingInfo Else         = alone $ text "else"
 printingInfo FixT         = alone $ text "fix"
 printingInfo Assign       = alone $ text "="
 printingInfo Semi         = (char ';', False, True)
-printingInfo (Name t)     = alone $ text (unpack t)
+printingInfo (Name t)     = alone $ text t
 
 printTogether :: [PrintingInfo] -> Doc
 printTogether []  = Pretty.empty

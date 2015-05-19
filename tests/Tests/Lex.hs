@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Tests.Lex where
 
 import Language.Glambda.Lex
@@ -8,11 +6,10 @@ import Tests.Util
 
 import Prelude hiding ( lex )
 
-import Data.Text as Text
 import Data.List as List
 import Control.Arrow as Arrow ( right )
 
-lexTestCases :: [(Text, [Token])]
+lexTestCases :: [(String, [Token])]
 lexTestCases = [ ("", [])
                , ("  ", [])
                , (" {- hi -}  \n  ", [])
@@ -40,7 +37,7 @@ lexTestCases = [ ("", [])
 
 lexTests :: TestTree
 lexTests = testGroup "Lexer" $
-  List.map (\(str, out) -> testCase ("`" ++ unpack str ++ "'") $
+  List.map (\(str, out) -> testCase ("`" ++ str ++ "'") $
                            Arrow.right (List.map unLoc)
                                         (lex str) @?= Right out)
            lexTestCases
