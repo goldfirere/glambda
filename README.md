@@ -1,3 +1,43 @@
+A Practical Introduction to Haskell GADTs
+=========================================
+
+This repo and these notes are for a talk given at [LambdaConf][1] in
+Boulder, CO, USA, on 22 May, 2015.
+
+This README is primarily intended as instructions for attendees of the talk.
+
+Setup
+-----
+
+**Do this first!**
+
+We will be working from my [glambda][2] project to learn about Generalized
+Algebraic Datatypes (GADTs). The `glambda` package has a non-trivial set
+of dependencies. While I'm introducing myself and GADTs, generally, it would
+be wise to download and compile all of the dependencies onto your laptop.
+Then, when we get to hands-on exercises, you'll be all ready to go.
+
+Here's what to do
+
+    > git clone git://github.com/goldfirere/glambda.git
+    > cd glambda
+    > cabal sandbox init
+    > cabal install --only-dependencies --enable-tests -j<# of CPUs you have>
+
+This should make your computer spin for a little while. In the meantime,
+enjoy the talk! (If you have trouble with `cabal sandbox`, possibly because
+of an old `cabal`, try the sequence of commands above without that step.)
+
+Instructions for exercises:
+ - [Exercise 1](Exercise1.md)
+ - [Exercise 2](Exercise2.md)
+ - [Exercise 3](Exercise3.md)
+
+[1]: http://www.degoesconsulting.com/lambdaconf-2015/
+[2]: https://github.com/goldfirere/glambda
+
+More information about `glambda` appears below:
+
 The Glamorous Glambda Interpreter
 =================================
 
