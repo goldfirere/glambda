@@ -1,0 +1,42 @@
+\documentclass{article}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{upgreek}
+\usepackage{fullpage}
+
+\newcommand{\lam}{\uplambda}
+\newcommand{\ttt}{\text{\texttt{t}}}
+\newcommand{\kk}{\text{\texttt{k}}}
+\newcommand{\jj}{\text{\texttt{j}}}
+\newcommand{\sss}{\text{\texttt{s}}}
+\newcommand{\shiftup}{{\uparrow}}
+
+\begin{document}
+\Huge
+\colorbox{black}{\color{white}
+\begin{minipage}{\textwidth}
+\vspace{1cm}
+\[
+\begin{array}{lcl}
+\shiftup^d_c(\kk) & = & \left\{ \begin{array}{ll} \kk & \text{if } \kk < c \\ \kk + d & \text{if } \kk \geq c \end{array} \right. \\
+\shiftup^d_c(\lam.\ttt_1) &=& \lam. \shiftup^d_{c+1}(\ttt_1) \\
+\shiftup^d_c(\ttt_1\ \ttt_2) &=& \shiftup^d_c(\ttt_1)\ \shiftup^d_c(\ttt_2)
+\end{array}
+\]
+\vspace{2cm}
+\[
+\begin{array}{lcl}
+[\jj \mapsto \sss]\kk &=& \left\{ \begin{array}{ll} \sss & \text{if } \kk = \jj \\ \kk & \text{otherwise} \end{array} \right. \\{}
+[\jj \mapsto \sss](\lam.\ttt_1) &=& \lam.[\jj+1 \mapsto \shiftup^1_0(\sss)]\ttt_1 \\{}
+[\jj \mapsto \sss](\ttt_1\ \ttt_2) &=& [\jj \mapsto \sss]\ttt_1\ [\jj \mapsto \sss]\ttt_2
+\end{array}
+\]
+\vspace{1cm}
+\end{minipage}
+}
+
+
+
+\end{document}
