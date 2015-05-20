@@ -56,7 +56,7 @@ data Exp :: [*] -> * -> * where
 class GlamVal t where
   -- | Well-typed closed values. Encoded as a data family with newtype
   -- instances in order to avoid runtime checking of values
-  data family Val t
+  data Val t
 
   -- | Convert a glambda value back into a glambda expression
   val :: Val t -> Exp '[] t
