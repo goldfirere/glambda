@@ -23,7 +23,8 @@
 ----------------------------------------------------------------------------
 
 module Language.Glambda.Pretty (
-  PrettyExp(..), Coloring, defaultColoring,
+  PrettyExp(..), defaultPretty,
+  Coloring, defaultColoring,
   prettyVar, prettyLam, prettyApp, prettyArith, prettyIf, prettyFix
   ) where
 
@@ -77,8 +78,9 @@ defaultColoring = Coloring all_colors []
 class Pretty exp => PrettyExp exp where
   prettyExp :: Coloring -> Prec -> exp -> Doc
 
-instance {-# OVERLAPPABLE #-} PrettyExp exp => Pretty exp where
-  pretty = nest 2 . prettyExp defaultColoring topPrec
+-- | Convenient implementation of 'pretty'
+defaultPretty :: PrettyExp exp => exp -> Doc
+defaultPretty = nest 2 . prettyExp defaultColoring topPrec
 
 -- | Print a variable
 prettyVar :: Coloring -> Int -> Doc

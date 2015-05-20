@@ -22,7 +22,7 @@ module Language.Glambda.Token (
   uGreater, uGreaterE, uEquals,
 
   -- * Tokens
-  Token(..), LToken(..), unLoc, unArithOp, unInteger, unBool, unName
+  Token(..), LToken(..), unLoc, unArithOp, unInt, unBool, unName
   ) where
 
 import Language.Glambda.Type
@@ -86,7 +86,7 @@ data Token
   | Arrow
   | Colon
   | ArithOp UArithOp
-  | Integer Integer
+  | Int Int
   | Bool Bool
   | If
   | Then
@@ -102,15 +102,15 @@ unArithOp :: Token -> Maybe UArithOp
 unArithOp (ArithOp x) = Just x
 unArithOp _           = Nothing
 
--- | Perhaps extract an 'Integer'
-unInteger :: Token -> Maybe Integer
-unInteger (Integer x) = Just x
-unInteger _           = Nothing
+-- | Perhaps extract an 'Int'
+unInt :: Token -> Maybe Int
+unInt (Int x) = Just x
+unInt _       = Nothing
 
 -- | Perhaps extract an 'Bool'
 unBool :: Token -> Maybe Bool
 unBool (Bool x) = Just x
-unBool _           = Nothing
+unBool _        = Nothing
 
 -- | Perhaps extract a 'String'
 unName :: Token -> Maybe String
@@ -176,7 +176,7 @@ printingInfo Dot          = (char '.', False, True)
 printingInfo Arrow        = alone $ text "->"
 printingInfo Colon        = (char ':', False, False)
 printingInfo (ArithOp a)  = alone $ pretty a
-printingInfo (Integer i)  = alone $ integer i
+printingInfo (Int i)      = alone $ int i
 printingInfo (Bool True)  = alone $ text "true"
 printingInfo (Bool False) = alone $ text "false"
 printingInfo If           = alone $ text "if"

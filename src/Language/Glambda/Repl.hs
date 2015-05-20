@@ -31,6 +31,8 @@ import Language.Glambda.Util
 import Language.Glambda.Statement
 import Language.Glambda.Globals
 import Language.Glambda.Monad
+import Language.Glambda.Exp
+import Language.Glambda.Type
 
 import Text.PrettyPrint.ANSI.Leijen as Pretty hiding ( (<$>) )
 
@@ -108,7 +110,7 @@ doStmts (s:ss) = doStmt s $ doStmts ss
 -- variables built in the 'Statement'
 doStmt :: Statement -> GlamE a -> GlamE a
 doStmt (BareExp uexp) thing_inside = check uexp $ \sty exp -> do
-  printLine $ printWithType (eval exp) sty
+  printLine $ printValWithType (eval exp) sty
   thing_inside
 doStmt (NewGlobal g uexp) thing_inside = check uexp $ \sty exp -> do
   printLine $ text g <+> char '=' <+> printWithType exp sty
@@ -173,6 +175,10 @@ printWithType :: (Pretty exp, Pretty ty) => exp -> ty -> Doc
 printWithType exp ty
   = pretty exp <+> colon <+> pretty ty
 
+printValWithType :: Val ty -> STy ty -> Doc
+printValWithType val sty
+  = printVal val sty <+> colon <+> pretty sty
+
 lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd, loadCmd
   :: String -> Glam ()
 lexCmd expr = reportErrors $ lexG expr
@@ -181,7 +187,7 @@ parseCmd = reportErrors . parseLex
 evalCmd expr = reportErrors $ do
   uexp <- parseLex expr
   check uexp $ \sty exp ->
-    return $ printWithType (eval exp) sty
+    return $ printValWithType (eval exp) sty
 
 stepCmd expr = reportErrors $ do
   uexp <- parseLex expr
@@ -193,7 +199,7 @@ stepCmd expr = reportErrors $ do
             loop e'
           Right v -> return v
     v <- loop exp
-    return $ printWithType v sty
+    return $ printValWithType v sty
 
 typeCmd expr = reportErrors $ do
   uexp <- parseLex expr

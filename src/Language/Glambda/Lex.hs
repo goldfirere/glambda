@@ -89,7 +89,7 @@ lexer1 = do
   pos <- getPosition
   L pos <$> choice [ symbolic
                    , word_token
-                   , Integer <$> Parsec.natural haskell ]
+                   , Int . fromInteger <$> Parsec.natural haskell ]
 
 -- | Lex one non-alphanumeric token
 symbolic :: Lexer Token

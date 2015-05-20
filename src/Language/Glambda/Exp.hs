@@ -15,12 +15,13 @@
 ----------------------------------------------------------------------------
 
 module Language.Glambda.Exp (
-  Exp(..), Elem(..), Val(..), val, eqExp
+  Exp(..), Elem(..), GlamVal(..), Val(..), printVal, eqExp
   ) where
 
 import Language.Glambda.Pretty
 import Language.Glambda.Token
 import Language.Glambda.Util
+import Language.Glambda.Type
 
 import Text.PrettyPrint.ANSI.Leijen
 
@@ -48,20 +49,29 @@ data Exp :: [*] -> * -> * where
   Arith :: Exp ctx Int -> ArithOp ty -> Exp ctx Int -> Exp ctx ty
   Cond  :: Exp ctx Bool -> Exp ctx ty -> Exp ctx ty -> Exp ctx ty
   Fix   :: Exp ctx (ty -> ty) -> Exp ctx ty
-  IntE  :: Integer -> Exp ctx Int
+  IntE  :: Int -> Exp ctx Int
   BoolE :: Bool -> Exp ctx Bool
 
--- | Well-typed values
-data Val :: [*] -> * -> * where
-  IntVal  :: Integer -> Val ctx Int
-  BoolVal :: Bool -> Val ctx Bool
-  LamVal  :: Exp (arg ': ctx) res -> Val ctx (arg -> res)
+-- | Classifies types that can be values of glambda expressions
+class GlamVal t where
+  -- | Well-typed closed values. Encoded as a data family with newtype
+  -- instances in order to avoid runtime checking of values
+  data family Val t
 
--- | Inject a value back into an expression
-val :: Val ctx ty -> Exp ctx ty
-val (IntVal n)    = IntE n
-val (BoolVal n)   = BoolE n
-val (LamVal body) = Lam body
+  -- | Convert a glambda value back into a glambda expression
+  val :: Val t -> Exp '[] t
+
+instance GlamVal Int where
+  newtype Val Int = IntVal Int
+  val (IntVal n) = IntE n
+
+instance GlamVal Bool where
+  newtype Val Bool = BoolVal Bool
+  val (BoolVal b) = BoolE b
+
+instance GlamVal (a -> b) where
+  newtype Val (a -> b) = LamVal (Exp '[a] b)
+  val (LamVal body) = Lam body
 
 ----------------------------------------------------
 -- | Equality on expressions, needed for testing
@@ -80,11 +90,25 @@ eqExp _             _             = False
 ----------------------------------------------------
 -- Pretty-printing
 
+instance Pretty (Exp ctx ty) where
+  pretty = defaultPretty
+
 instance PrettyExp (Exp ctx ty) where
   prettyExp = pretty_exp
 
-instance PrettyExp (Val ctx ty) where
+instance GlamVal ty => Pretty (Val ty) where
+  pretty = defaultPretty
+
+instance GlamVal ty => PrettyExp (Val ty) where
   prettyExp coloring prec v = prettyExp coloring prec (val v)
+
+-- | Pretty-prints a 'Val'. This needs type information to know how to print.
+-- Pattern matching gives GHC enough information to be able to find the
+-- 'GlamVal' instance needed to construct the 'PrettyExp' instance.
+printVal :: Val t -> STy t -> Doc
+printVal val SIntTy       = pretty val
+printVal val SBoolTy      = pretty val
+printVal val (_ `SArr` _) = pretty val
 
 pretty_exp :: Coloring -> Prec -> Exp ctx ty -> Doc
 pretty_exp c _    (Var n)          = prettyVar c (elemToInt n)
@@ -93,6 +117,6 @@ pretty_exp c prec (App e1 e2)      = prettyApp c prec e1 e2
 pretty_exp c prec (Arith e1 op e2) = prettyArith c prec e1 op e2
 pretty_exp c prec (Cond e1 e2 e3)  = prettyIf c prec e1 e2 e3
 pretty_exp c prec (Fix e)          = prettyFix c prec e
-pretty_exp _ _    (IntE n)         = integer n
+pretty_exp _ _    (IntE n)         = int n
 pretty_exp _ _    (BoolE True)     = text "true"
 pretty_exp _ _    (BoolE False)    = text "false"

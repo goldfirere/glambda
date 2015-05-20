@@ -129,7 +129,7 @@ apps = choice [ UFix <$ tok FixT <*> expr
 
 factor :: Parser UExp
 factor = choice [ between (tok LParen) (tok RParen) expr
-                , UIntE <$> tok' unInteger
+                , UIntE <$> tok' unInt
                 , UBoolE <$> tok' unBool
                 , var ]
 
