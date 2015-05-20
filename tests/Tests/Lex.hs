@@ -22,9 +22,9 @@ lexTestCases = [ ("", [])
                , ("(()", [LParen, LParen, RParen])
                , ("++--++", [ArithOp uPlus, ArithOp uPlus])
                , ("->->", [Arrow, Arrow])
-               , ("45+332-89/1*3%xyz", [ Integer 45, ArithOp uPlus, Integer 332
-                                       , ArithOp uMinus, Integer 89, ArithOp uDivide
-                                       , Integer 1, ArithOp uTimes, Integer 3
+               , ("45+332-89/1*3%xyz", [ Int 45, ArithOp uPlus, Int 332
+                                       , ArithOp uMinus, Int 89, ArithOp uDivide
+                                       , Int 1, ArithOp uTimes, Int 3
                                        , ArithOp uMod, Name "xyz" ])
                , ("===", [ArithOp uEquals, Assign])
                , ("if x then y else z", [If, Name "x", Then, Name "y", Else, Name "z"])

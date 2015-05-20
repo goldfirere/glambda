@@ -58,7 +58,7 @@ checkTests = testGroup "Typechecker" $
                          case m_result of
                            Just result
                              -> (render (plain $ pretty exp), unrefineTy sty,
-                                 render (plain $ pretty (eval exp)))
+                                 render (plain $ prettyVal (eval exp) sty))
                                  @?= result
                            _ -> assertFailure "unexpected type-check success"
                   of

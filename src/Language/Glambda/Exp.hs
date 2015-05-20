@@ -15,7 +15,7 @@
 ----------------------------------------------------------------------------
 
 module Language.Glambda.Exp (
-  Exp(..), Elem(..), GlamVal(..), Val(..), printVal, eqExp
+  Exp(..), Elem(..), GlamVal(..), Val(..), prettyVal, eqExp
   ) where
 
 import Language.Glambda.Pretty
@@ -105,10 +105,10 @@ instance GlamVal ty => PrettyExp (Val ty) where
 -- | Pretty-prints a 'Val'. This needs type information to know how to print.
 -- Pattern matching gives GHC enough information to be able to find the
 -- 'GlamVal' instance needed to construct the 'PrettyExp' instance.
-printVal :: Val t -> STy t -> Doc
-printVal val SIntTy       = pretty val
-printVal val SBoolTy      = pretty val
-printVal val (_ `SArr` _) = pretty val
+prettyVal :: Val t -> STy t -> Doc
+prettyVal val SIntTy       = pretty val
+prettyVal val SBoolTy      = pretty val
+prettyVal val (_ `SArr` _) = pretty val
 
 pretty_exp :: Coloring -> Prec -> Exp ctx ty -> Doc
 pretty_exp c _    (Var n)          = prettyVar c (elemToInt n)

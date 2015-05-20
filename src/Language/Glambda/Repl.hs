@@ -177,7 +177,7 @@ printWithType exp ty
 
 printValWithType :: Val ty -> STy ty -> Doc
 printValWithType val sty
-  = printVal val sty <+> colon <+> pretty sty
+  = prettyVal val sty <+> colon <+> pretty sty
 
 lexCmd, parseCmd, evalCmd, stepCmd, typeCmd, allCmd, loadCmd
   :: String -> Glam ()

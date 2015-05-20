@@ -4,7 +4,7 @@ A Practical Introduction to Haskell GADTs
 This repo and these notes are for a talk given at [LambdaConf][1] in
 Boulder, CO, USA, on 22 May, 2015.
 
-This README is primarily intended as instructions for attendees of the talk.
+See below for more information about `glambda` itself.
 
 Setup
 -----
