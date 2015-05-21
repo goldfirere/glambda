@@ -8,7 +8,7 @@ cloned and say
 
     > git checkout ex3
 
-This will put you on the `ex3` tag, which has everything in just the right
+This will put you on the `ex3` branch, which has everything in just the right
 state for this exercise.
 
 Just to make sure everything is still humming along nicely at this point,
