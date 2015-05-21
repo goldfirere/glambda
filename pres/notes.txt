@@ -1,4 +1,9 @@
 
+Prep:
+ - ghc-7.10
+ - ex3 branch
+ - correctly-built glam
+
 0. get folks to cabal install --only-dependencies -j<# of processors>  (0:00-0:02))
 
 I. Intro  (0:02-0:07)
@@ -42,7 +47,7 @@ VII. Glambda
   - de Bruijn indices
      - :step (\x:Int. (\y:Int. x) 3 + x) 4
 
-  - code: Type, Exp  (1:20-1:30)
+  - code: Exp  (1:20-1:30)
      - Exp, starting with Int & Bool
      - Elem
      - Var

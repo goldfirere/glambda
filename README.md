@@ -28,6 +28,9 @@ This should make your computer spin for a little while. In the meantime,
 enjoy the talk! (If you have trouble with `cabal sandbox`, possibly because
 of an old `cabal`, try the sequence of commands above without that step.)
 
+Exercises 1 and 2 do *not* require those dependencies, so you can work on
+them while compiling dependencies.
+
 Instructions for exercises:
  - [Exercise 1](Exercise1.md)
  - [Exercise 2](Exercise2.md)
