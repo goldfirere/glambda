@@ -23,7 +23,7 @@ import Language.Glambda.Shift
 
 -- | Given a lambda and an expression, beta-reduce.
 apply :: Val (arg -> res) -> Exp '[] arg -> Exp '[] res
-apply (LamVal body) arg = subst arg body
+apply = undefined
 
 -- | Apply an arithmetic operator to two values.
 arith :: Val Int -> ArithOp ty -> Val Int -> Exp '[] ty
@@ -40,8 +40,7 @@ arith (IntVal n1) Equals   (IntVal n2) = BoolE (n1 == n2)
 
 -- | Conditionally choose between two expressions
 cond :: Val Bool -> Exp '[] t -> Exp '[] t -> Exp '[] t
-cond (BoolVal True)  e _ = e
-cond (BoolVal False) _ e = e
+cond = undefined
 
 -- | Unroll a `fix` one level
 unfix :: Val (ty -> ty) -> Exp '[] ty
@@ -55,14 +54,7 @@ impossibleVar _ = error "GHC's typechecker failed"
 
 -- | Evaluate an expression, using big-step semantics.
 eval :: Exp '[] t -> Val t
-eval (Var v)          = impossibleVar v
-eval (Lam body)       = LamVal body
-eval (App e1 e2)      = eval (apply (eval e1) e2)
-eval (Arith e1 op e2) = eval (arith (eval e1) op (eval e2))
-eval (Cond e1 e2 e3)  = eval (cond (eval e1) e2 e3)
-eval (Fix e)          = eval (unfix (eval e))
-eval (IntE n)         = IntVal n
-eval (BoolE b)        = BoolVal b
+eval = undefined
 
 -- | Step an expression, either to another expression or to a value.
 step :: Exp '[] t -> Either (Exp '[] t) (Val t)
@@ -70,7 +62,7 @@ step (Var v)          = impossibleVar v
 step (Lam body)       = Right (LamVal body)
 step (App e1 e2)      = case step e1 of
                           Left e1' -> Left (App e1' e2)
-                          Right (LamVal body) -> Left (subst e2 body)
+                          Right lam -> Left (apply lam e2)
 step (Arith e1 op e2) = case step e1 of
                           Left e1' -> Left (Arith e1' op e2)
                           Right v1 -> case step e2 of
