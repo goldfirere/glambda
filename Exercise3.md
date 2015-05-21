@@ -1,7 +1,7 @@
-Exercise 3: `Arith` and `Cond`
-==============================
+Exercise 3: `eval`, `apply`, and `cond`
+=======================================
 
-The last exercise is to add the `Arith` and `Cond` constructors to `Exp`.
+The last exercise is to write the `eval`, `apply`, and `cond` functions.
 
 To ensure the proper setup for this task, go into the `glambda` repo you've
 cloned and say
@@ -19,33 +19,44 @@ go ahead and do a
 
 (You won't need to enable testing for these exercises.)
 
-The final program should build without any problems. Of course, it won't be
-able to deal with arithmetic expressions or conditionals.
+The final program should build without any problems. Of course, it doesn't
+have an evaluator! But you should still be able to do things, as long as
+those things don't require using the big-step evaluator function application.
+(Both the big-step and small-step evaluators use the same -- now missing --
+code for function application.) To test, you can run `glam`:
 
-1. First, add `Arith` and `Cond` constructors to the `Exp` type in
-`src/Language/Glambda/Exp.hs`. Use `UArith` and `UCond` from `UExp` (in
-`src/Language/Glambda/Unchecked.hs`) as templates.
-You will also need to update several functions in `Exp` to deal with
-the new constructors. (See `src/Language/Glambda/Pretty.hs` for functions
-to help with pretty-printing your new forms.)
+    > ./dist/build/glam/glam
+    ...
+    λ> :step \x:Int.x
+    λ#. #0 : Int -> Int
+    λ#. #0 : Int -> Int
+    λ> :quit
 
-2. Add clauses for your new forms in `shift` and `subst` in the `Shift`
-module. These should be very straightforward.
+Note how these instructions use `:step` to avoid using the big-step evaluator.
 
-3. Add clauses for your new forms in the big-step and small-step evaluators,
-in `Eval`. (You can skip small-step -- which is a bit harder -- if you want
-to see something working quickly.)
+Write your evaluator in `src/Language/Glambda/Eval.hs`. You will see `apply`,
+`cond`, and `eval` functions stubbed out in that file. Fill them in.
 
-4. Edit the `Check` module to uncomment the region that type-checks arithmetic
-and conditional expressions. Feel free to stare at this code if you want
-to understand it, but it's a bit beyond the scope of today's workshop.
-
-5. Marvel at your handiwork, adding `1 + 1` to get `2 : Int`.
-
-Remember:
+Useful tips:
   * To start an interactive session with the glambda package loaded, use
     `cabal repl` in the `glambda` directory. If that somehow isn't the
     setup you want, `cabal exec XXX` runs command `XXX` with your sandbox
     available. (For example, you can say `cabal exec ghci` for a sandbox-aware
     GHCi session or `cabal exec bash` to make a prompt where every call to
     GHC or its utilities uses your sandboxed set of packages.)
+
+  * You will need to work closely with the `Exp` type, defined in
+    `src/Language/Glambda/Exp.hs`. You will also need the `Val` type,
+    also defined in `Exp.hs`. If it's more convenient, you can also
+    use the Haddock docs at https://hackage.haskell.org/package/glambda
+
+  * You may want to look at `step`, the small-step stepper for inspiration.
+
+  * You will also need to use substitution. Use
+
+        subst :: Exp ctx s -> Exp (s ': ctx) t -> Exp ctx t
+
+  to substitute the first expression in for the 0'th variable of the second.
+  This function is defined in the `Language.Glambda.Shift` module.
+
+  * You will *not* need to edit any file other than `Eval.hs`.
