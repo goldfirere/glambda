@@ -14,7 +14,7 @@ I. Intro  (0:02-0:07)
   - goals
   - working toward glambda
 
-II. Simple GADTs  (0:07-0:18)
+II. Simple GADTs  (0:07-0:18)7
   - emacs with STy with Int + Bool + Maybe
   - back to slides
 

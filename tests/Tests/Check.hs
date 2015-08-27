@@ -13,11 +13,12 @@ import Language.Glambda.Eval
 import Language.Glambda.Globals
 import Language.Glambda.Util
 
-import Control.Error
+import Control.Monad.Trans.Either
 import Control.Monad.Reader
 
 import Text.PrettyPrint.ANSI.Leijen
 
+import Data.Maybe
 import Data.List as List
 import Control.Arrow as Arrow
 

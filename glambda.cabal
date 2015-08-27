@@ -1,5 +1,5 @@
 name:           glambda
-version:        1.0
+version:        1.0.1
 cabal-version:  >= 1.10
 synopsis:       A simply typed lambda calculus interpreter, written with GADTs
 homepage:       https://github.com/goldfirere/glambda
@@ -22,12 +22,13 @@ description:
 source-repository this
   type:     git
   location: https://github.com/goldfirere/glambda.git
-  tag:      v1.0
+  tag:      v1.0.1
 
 library
   build-depends:      base == 4.*
                     , ansi-wl-pprint >= 0.6.7.1
-                    , errors >= 1.4.6 && < 2.0
+                    , transformers >= 0.3.0.0
+                    , either >= 4.0
                     , mtl >= 2.1.3.1
                     , containers >= 0.5
                     , parsec >= 3.1
@@ -80,7 +81,7 @@ test-suite tests
                     , glambda
                     , template-haskell
                     , ansi-wl-pprint >= 0.6.7.1
-                    , errors >= 1.4.6 && < 2.0
+                    , either >= 4.0
                     , mtl >= 2.1.3.1
                     , parsec >= 3.1
                     , tasty >= 0.8.1

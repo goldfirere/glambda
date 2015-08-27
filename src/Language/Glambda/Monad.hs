@@ -33,7 +33,8 @@ import System.Console.Haskeline
 
 import Text.PrettyPrint.ANSI.Leijen
 
-import Control.Error
+import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Either
 import Control.Monad.Reader
 import Control.Monad.Error
 import Control.Monad.State
