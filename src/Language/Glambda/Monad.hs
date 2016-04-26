@@ -34,9 +34,8 @@ import System.Console.Haskeline
 import Text.PrettyPrint.ANSI.Leijen
 
 import Control.Monad.Trans.Maybe
-import Control.Monad.Trans.Either
+import Control.Monad.Except
 import Control.Monad.Reader
-import Control.Monad.Error
 import Control.Monad.State
 import System.IO
 
@@ -50,7 +49,7 @@ newtype Glam a = Glam { unGlam :: MaybeT (StateT Globals (InputT IO)) a }
   deriving (Monad, Functor, Applicative, MonadState Globals, MonadIO)
 
 -- | Like the 'Glam' monad, but also supporting error messages via 'Doc's
-newtype GlamE a = GlamE { unGlamE :: EitherT Doc Glam a }
+newtype GlamE a = GlamE { unGlamE :: ExceptT Doc Glam a }
   deriving (Monad, Functor, Applicative, MonadError Doc)
 
 instance MonadReader Globals GlamE where
@@ -106,4 +105,4 @@ runGlam thing_inside
 -- | Run a 'GlamE' computation
 runGlamE :: GlamE a -> Glam (Either Doc a)
 runGlamE thing_inside
-  = runEitherT $ unGlamE thing_inside
+  = runExceptT $ unGlamE thing_inside
