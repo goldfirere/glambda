@@ -13,3 +13,5 @@ Add constructors for
  * `(->)`
 
 Add clauses of `zero` for these as well.
+
+The solution is available in `Ex1.hs` in the `solutions` branch.
