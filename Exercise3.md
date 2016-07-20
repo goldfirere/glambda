@@ -60,3 +60,5 @@ Useful tips:
   This function is defined in the `Language.Glambda.Shift` module.
 
   * You will *not* need to edit any file other than `Eval.hs`.
+
+The solution is available in `Eval.hs` in the `master` branch.
