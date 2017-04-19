@@ -13,11 +13,12 @@ import Language.Glambda.Eval
 import Language.Glambda.Globals
 import Language.Glambda.Util
 
-import Control.Error
+import Control.Monad.Trans.Except
 import Control.Monad.Reader
 
 import Text.PrettyPrint.ANSI.Leijen
 
+import Data.Maybe
 import Data.List as List
 import Control.Arrow as Arrow
 
@@ -52,7 +53,7 @@ checkTests :: TestTree
 checkTests = testGroup "Typechecker" $
   List.map (\(expr_str, m_result) ->
                testCase ("`" ++ expr_str ++ "'") $
-               (case flip runReader id_globals $ runEitherT $ do
+               (case flip runReader id_globals $ runExceptT $ do
                        uexp <- hoistEither $ Arrow.left text $ parseExp =<< lex expr_str
                        check uexp $ \sty exp -> return $
                          case m_result of
@@ -64,6 +65,9 @@ checkTests = testGroup "Typechecker" $
                   of
                   Left _  -> assertBool "unexpected failure" (isNothing m_result)
                   Right b -> b)) checkTestCases
+
+hoistEither :: Monad m => Either e a -> ExceptT e m a
+hoistEither = ExceptT . return
 
 id_globals :: Globals
 id_globals = extend "id_int" (SIntTy `SArr` SIntTy) (Lam (Var EZ)) emptyGlobals
