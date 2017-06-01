@@ -14,7 +14,7 @@
 -- Module      :  Language.Glambda.Pretty
 -- Copyright   :  (C) 2015 Richard Eisenberg
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  Richard Eisenberg (eir@cis.upenn.edu)
+-- Maintainer  :  Richard Eisenberg (rae@cs.brynmawr.edu)
 -- Stability   :  experimental
 --
 -- Pretty-printing expressions. This allows reduction of code duplication

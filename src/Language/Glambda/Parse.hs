@@ -5,7 +5,7 @@
 -- Module      :  Language.Glambda.Parse
 -- Copyright   :  (C) 2015 Richard Eisenberg
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  Richard Eisenberg (eir@cis.upenn.edu)
+-- Maintainer  :  Richard Eisenberg (rae@cs.brynmawr.edu)
 -- Stability   :  experimental
 --
 -- Parses tokens into the un-type-checked AST. "Parsing", in glambda,
