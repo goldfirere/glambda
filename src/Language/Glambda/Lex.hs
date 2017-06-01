@@ -3,7 +3,7 @@
 -- Module      :  Language.Glambda.Lex
 -- Copyright   :  (C) 2015 Richard Eisenberg
 -- License     :  BSD-style (see LICENSE)
--- Maintainer  :  Richard Eisenberg (eir@cis.upenn.edu)
+-- Maintainer  :  Richard Eisenberg (rae@cs.brynmawr.edu)
 -- Stability   :  experimental
 --
 -- Lexes a Glambda program string into a sequence of tokens
