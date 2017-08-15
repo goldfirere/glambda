@@ -1,5 +1,5 @@
 {-# LANGUAGE DataKinds, PolyKinds, GADTs, TypeOperators, TypeFamilies,
-             ScopedTypeVariables #-}
+             ScopedTypeVariables, TypeFamilyDependencies #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -15,7 +15,7 @@
 ----------------------------------------------------------------------------
 
 module Language.Glambda.Exp (
-  Exp(..), Elem(..), GlamVal(..), Val(..), prettyVal, eqExp
+  Exp(..), Elem(..), GlamVal(..), prettyVal, eqExp
   ) where
 
 import Language.Glambda.Pretty
@@ -54,24 +54,24 @@ data Exp :: [*] -> * -> * where
 
 -- | Classifies types that can be values of glambda expressions
 class GlamVal t where
-  -- | Well-typed closed values. Encoded as a data family with newtype
-  -- instances in order to avoid runtime checking of values
-  data Val t
+  -- | Well-typed closed values. Encoded as a type family, because
+  -- different values have different representations.
+  type Val t = r | r -> t
 
   -- | Convert a glambda value back into a glambda expression
   val :: Val t -> Exp '[] t
 
 instance GlamVal Int where
-  newtype Val Int = IntVal Int
-  val (IntVal n) = IntE n
+  type Val Int = Int
+  val = IntE
 
 instance GlamVal Bool where
-  newtype Val Bool = BoolVal Bool
-  val (BoolVal b) = BoolE b
+  type Val Bool = Bool
+  val = BoolE
 
 instance GlamVal (a -> b) where
-  newtype Val (a -> b) = LamVal (Exp '[a] b)
-  val (LamVal body) = Lam body
+  type Val (a -> b) = Exp '[a] b
+  val = Lam
 
 ----------------------------------------------------
 -- | Equality on expressions, needed for testing
@@ -96,19 +96,13 @@ instance Pretty (Exp ctx ty) where
 instance PrettyExp (Exp ctx ty) where
   prettyExp = pretty_exp
 
-instance GlamVal ty => Pretty (Val ty) where
-  pretty = defaultPretty
-
-instance GlamVal ty => PrettyExp (Val ty) where
-  prettyExp coloring prec v = prettyExp coloring prec (val v)
-
 -- | Pretty-prints a 'Val'. This needs type information to know how to print.
 -- Pattern matching gives GHC enough information to be able to find the
 -- 'GlamVal' instance needed to construct the 'PrettyExp' instance.
 prettyVal :: Val t -> STy t -> Doc
-prettyVal val SIntTy       = pretty val
-prettyVal val SBoolTy      = pretty val
-prettyVal val (_ `SArr` _) = pretty val
+prettyVal val SIntTy       = pretty (IntE val)
+prettyVal val SBoolTy      = pretty (BoolE val)
+prettyVal val (_ `SArr` _) = pretty (Lam val)
 
 pretty_exp :: Coloring -> Prec -> Exp ctx ty -> Doc
 pretty_exp c _    (Var n)          = prettyVar c (elemToInt n)

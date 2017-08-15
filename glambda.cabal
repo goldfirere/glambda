@@ -1,5 +1,5 @@
 name:           glambda
-version:        1.0.2
+version:        1.1
 cabal-version:  >= 1.10
 synopsis:       A simply typed lambda calculus interpreter, written with GADTs
 homepage:       https://github.com/goldfirere/glambda
@@ -22,7 +22,7 @@ description:
 source-repository this
   type:     git
   location: https://github.com/goldfirere/glambda.git
-  tag:      v1.0.2
+  tag:      v1.1
 
 library
   build-depends:      base == 4.*
