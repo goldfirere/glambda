@@ -33,8 +33,8 @@ import Language.Haskell.TH
 import Control.Monad
 
 prettyError :: Pretty a => a -> a -> String
-prettyError exp act = (render $ text "Expected" <+> squotes (pretty exp) <> semi <+>
-                                text "got" <+> squotes (pretty act))
+prettyError exp act = render $ text "Expected" <+> squotes (pretty exp) <> semi <+>
+                                text "got" <+> squotes (pretty act)
 
 (@?=) :: (Eq a, Pretty a) => a -> a -> Assertion
 act @?= exp = (act == exp) @? prettyError exp act
@@ -45,7 +45,7 @@ exp @=? act = (act == exp) @? prettyError exp act
 $( do decs <- reifyInstances ''Eq [ConT ''ParseError]
       case decs of  -- GHC 7.6 eagerly typechecks the instance, sometimes
                     -- reporting a duplicate. Urgh. So we can't quote it.
-        [] -> liftM (:[]) $
+        [] -> fmap (:[]) $
               instanceD (return []) (appT (conT ''Eq) (conT ''ParseError))
                         [ valD (varP '(==)) (normalB [| (==) `on` show |]) [] ]
         _  -> return [] )

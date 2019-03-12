@@ -1,0 +1,58 @@
+Test suite tests: RUNNING...
+Top
+  Lexer
+    `':                                                OK
+    `  ':                                              OK
+    ` {- hi -}  
+  ':                                  OK
+    ` {----} ':                                        OK
+    ` {- foo {- bar -} blah -}':                       OK
+    ` {- foo {-- bar -}-}':                            OK
+    `{- blah ---}':                                    OK
+    `{- froggle -} -- blah':                           OK
+    `x':                                               OK
+    `(()':                                             OK
+    `++--++':                                          OK
+    `->->':                                            OK
+    `45+332-89/1*3%xyz':                               OK
+    `===':                                             OK
+    `if x then y else z':                              OK
+    `ifs trues falsee true-':                          OK
+    `:\':                                              OK
+    `>>==<===<':                                       OK
+  Parser
+    Success
+      `\x:Int.x':                                      OK
+      `\x:Int.\y:Int.x':                               OK
+      `\x:Int.\x:Int.x':                               OK
+      `1 + 2 + 3':                                     OK
+      `1 + 2 * 4 % 5':                                 OK
+      `if \x:Int.x then 4 else (\x:Int.x) (\y:Int.y)': OK
+      `true true true':                                OK
+      `true false (\x:Int.x)':                         OK
+      `\x:Int->Int.\y:Int.x y':                        OK
+      `if 3 - 1 == 2 then \x:Int.x else \x:Int.3':     OK
+      `\x:Int.y':                                      OK
+    Failure
+      ` {- ':                                          OK
+      `{-{- -}':                                       OK
+  Typechecker
+    `1':                                               OK
+    `1 + true':                                        OK
+    `(\x:Int.x) 5':                                    OK
+    `(\x:Int.\y:Int->Int.y x) 4 (\z:Int.z*2)':         OK
+    `1 + 2 * 3 / 4 - 10 % 3':                          OK
+    `if true then 1 else false':                       OK
+    `if 3 - 1 == 2 then \x:Int.x else \x:Int.3':       OK
+    `1 > 2':                                           OK
+    `2 > 1':                                           OK
+    `1 > 1':                                           OK
+    `1 >= 1':                                          OK
+    `1 < 2':                                           OK
+    `1 < 1':                                           OK
+    `1 <= 1':                                          OK
+    `id_int (id_int 5)':                               OK
+
+All 46 tests passed (0.01s)
+Test suite tests: PASS
+Test suite logged to: /home/jrp/Projects/glambda/dist-newstyle/build/x86_64-linux/ghc-8.6.4/glambda-1.0.2/t/tests/test/glambda-1.0.2-tests.log

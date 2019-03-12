@@ -52,7 +52,7 @@ checkTestCases = [ ("1", Just ("1", IntTy, "1"))
 checkTests :: TestTree
 checkTests = testGroup "Typechecker" $
   List.map (\(expr_str, m_result) ->
-               testCase ("`" ++ expr_str ++ "'") $
+               testCase ("`" ++ expr_str ++ "'")
                (case flip runReader id_globals $ runExceptT $ do
                        uexp <- hoistEither $ Arrow.left text $ parseExp =<< lex expr_str
                        check uexp $ \sty exp -> return $

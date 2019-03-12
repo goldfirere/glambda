@@ -140,7 +140,7 @@ lam = do
   tok Colon
   typ <- ty
   tok Dot
-  e <- bind bound_var $ expr
+  e <- bind bound_var expr
   return (ULam typ e)
 
 cond :: Parser UExp
@@ -175,4 +175,4 @@ mul_op = mk_op <$> arith_op [uTimes, uDivide, uMod]
 bool_op = mk_op <$> arith_op [uLess, uLessE, uGreater, uGreaterE, uEquals]
 
 mk_op :: UArithOp -> UExp -> UExp -> UExp
-mk_op op = \e1 e2 -> UArith e1 op e2
+mk_op op e1 e2 = UArith e1 op e2

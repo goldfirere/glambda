@@ -103,8 +103,7 @@ runStmts str = reportErrors $ do
 
 -- | Run a sequence of statements, returning the new global variables
 doStmts :: [Statement] -> GlamE Globals
-doStmts []     = ask
-doStmts (s:ss) = doStmt s $ doStmts ss
+doStmts  = foldr doStmt ask
 
 -- | Run a 'Statement' and then run another action with the global
 -- variables built in the 'Statement'
@@ -128,7 +127,7 @@ type CommandTable = [(String, String -> Glam ())]
 dispatchCommand :: CommandTable -> String -> Glam ()
 dispatchCommand table line
   = case List.filter ((cmd `List.isPrefixOf`) . fst) table of
-      []            -> do printLine $ text "Unknown command:" <+> squotes (text cmd)
+      []            -> printLine $ text "Unknown command:" <+> squotes (text cmd)
       [(_, action)] -> action arg
       many          -> do printLine $ text "Ambiguous command:" <+> squotes (text cmd)
                           printLine $ text "Possibilities:" $$
