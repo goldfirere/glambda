@@ -30,7 +30,6 @@ import Text.Parsec ( ParseError )
 
 import Data.Function
 import Language.Haskell.TH
-import Control.Monad
 
 prettyError :: Pretty a => a -> a -> String
 prettyError exp act = render $ text "Expected" <+> squotes (pretty exp) <> semi <+>
