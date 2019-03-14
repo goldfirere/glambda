@@ -84,7 +84,7 @@ defaultPretty = nest 2 . prettyExp defaultColoring topPrec
 
 -- | Print a variable
 prettyVar :: Coloring -> Int -> Doc
-prettyVar (Coloring _ bound) n = (nthDefault id n bound) (char '#' <> int n)
+prettyVar (Coloring _ bound) n = nthDefault id n bound (char '#' <> int n)
 
 -- | Print a lambda expression
 prettyLam :: PrettyExp exp => Coloring -> Prec -> Maybe Ty -> exp -> Doc

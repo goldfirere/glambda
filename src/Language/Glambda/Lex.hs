@@ -130,5 +130,5 @@ word_token = to_token <$> word
 
 -- | Lex one word
 word :: Lexer String
-word = ((:) <$> (letter <|> char '_') <*>
-                 (many (alphaNum <|> char '_')))
+word = (:) <$> (letter <|> char '_') <*>
+                 many (alphaNum <|> char '_')
