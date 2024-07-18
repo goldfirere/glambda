@@ -26,8 +26,8 @@ source-repository this
 
 library
   build-depends:      base == 4.*
-                    , ansi-wl-pprint == 0.6.8.1
-                    , mtl == 2.2.2
+                    , ansi-wl-pprint <= 0.6.9
+                    , mtl >= 2.2.1
                     , transformers >= 0.4.0.0
                     , containers >= 0.5
                     , parsec >= 3.1

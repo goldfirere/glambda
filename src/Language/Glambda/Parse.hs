@@ -39,6 +39,7 @@ import Data.List as List
 import Control.Applicative
 import Control.Arrow as Arrow ( left )
 import Control.Monad.Reader
+import Control.Monad (guard)
 
 -- | Parse a sequence of semicolon-separated statements, aborting with
 -- an error upon failure
