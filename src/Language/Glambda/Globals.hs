@@ -21,7 +21,7 @@ import Language.Glambda.Type
 
 import Text.PrettyPrint.ANSI.Leijen
 
-import Control.Monad.Error
+import Control.Monad.Except
 
 import Data.Map as Map
 
