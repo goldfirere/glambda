@@ -28,7 +28,7 @@ module Language.Glambda.Token (
 import Language.Glambda.Type
 import Language.Glambda.Util
 
-import Text.PrettyPrint.ANSI.Leijen  as Pretty
+import Prettyprinter (Pretty, pretty, Doc, prettyList, emptyDoc, (<+>), list, align)
 import Text.Parsec.Pos ( SourcePos )
 
 import Data.List                      as List
@@ -125,16 +125,16 @@ unLoc :: LToken -> Token
 unLoc (L _ t) = t
 
 instance Pretty (ArithOp ty) where
-  pretty Plus     = char '+'
-  pretty Minus    = char '-'
-  pretty Times    = char '*'
-  pretty Divide   = char '/'
-  pretty Mod      = char '%'
-  pretty Less     = char '<'
-  pretty LessE    = text "<="
-  pretty Greater  = char '>'
-  pretty GreaterE = text ">="
-  pretty Equals   = text "=="
+  pretty Plus     = pretty '+'
+  pretty Minus    = pretty '-'
+  pretty Times    = pretty '*'
+  pretty Divide   = pretty '/'
+  pretty Mod      = pretty '%'
+  pretty Less     = pretty '<'
+  pretty LessE    = pretty "<="
+  pretty Greater  = pretty '>'
+  pretty GreaterE = pretty ">="
+  pretty Equals   = pretty "=="
 
 instance Show (ArithOp ty) where
   show = render . pretty
@@ -156,39 +156,45 @@ instance Pretty LToken where
   pretty     = pretty . unLoc
   prettyList = prettyList . List.map unLoc
 
+instance PrettyT LToken where
+  prettyT = pretty
+
+instance (PrettyT a) => PrettyT [a] where
+  prettyT = align . list . map prettyT
+
 instance Show LToken where
   show = render . pretty
 
-type PrintingInfo = (Doc, Bool, Bool)
+type PrintingInfo ann = (Doc ann, Bool, Bool)
    -- the bools say whether or not to include a space before or a space after
 
-alone :: Doc -> PrintingInfo
+alone :: Doc ann -> PrintingInfo ann
 alone = (, True, True)
 
-getDoc :: PrintingInfo -> Doc
+getDoc :: PrintingInfo ann -> Doc ann
 getDoc (doc, _, _) = doc
 
-printingInfo :: Token -> PrintingInfo
-printingInfo LParen       = (char '(', True, False)
-printingInfo RParen       = (char ')', False, True)
-printingInfo Lambda       = (char '\\', True, False)
-printingInfo Dot          = (char '.', False, True)
-printingInfo Arrow        = alone $ text "->"
-printingInfo Colon        = (char ':', False, False)
+printingInfo :: Token -> PrintingInfo ann
+printingInfo LParen       = (pretty '(', True, False)
+printingInfo RParen       = (pretty ')', False, True)
+printingInfo Lambda       = (pretty '\\', True, False)
+printingInfo Dot          = (pretty '.', False, True)
+printingInfo Arrow        = alone $ pretty "->"
+printingInfo Colon        = (pretty ':', False, False)
 printingInfo (ArithOp a)  = alone $ pretty a
-printingInfo (Int i)      = alone $ int i
-printingInfo (Bool True)  = alone $ text "true"
-printingInfo (Bool False) = alone $ text "false"
-printingInfo If           = alone $ text "if"
-printingInfo Then         = alone $ text "then"
-printingInfo Else         = alone $ text "else"
-printingInfo FixT         = alone $ text "fix"
-printingInfo Assign       = alone $ text "="
-printingInfo Semi         = (char ';', False, True)
-printingInfo (Name t)     = alone $ text t
+printingInfo (Int i)      = alone $ pretty i
+printingInfo (Bool True)  = alone $ pretty "true"
+printingInfo (Bool False) = alone $ pretty "false"
+printingInfo If           = alone $ pretty "if"
+printingInfo Then         = alone $ pretty "then"
+printingInfo Else         = alone $ pretty "else"
+printingInfo FixT         = alone $ pretty "fix"
+printingInfo Assign       = alone $ pretty "="
+printingInfo Semi         = (pretty ';', False, True)
+printingInfo (Name t)     = alone $ pretty t
 
-printTogether :: [PrintingInfo] -> Doc
-printTogether []  = Pretty.empty
+printTogether :: [PrintingInfo ann] -> Doc ann
+printTogether []  = emptyDoc
 printTogether pis = getDoc $ List.foldl1 combine pis
   where
     combine (doc1, before_space, inner_space1) (doc2, inner_space2, after_space)

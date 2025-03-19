@@ -30,15 +30,16 @@ import Language.Glambda.Globals
 import Language.Glambda.Monad ( GlamE )
 #endif
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter (Doc, (<+>), squotes, pretty, indent, vcat)
+import Prettyprinter.Render.Terminal (AnsiStyle)
 
 import Control.Monad.Reader
 import Control.Monad.Except
 
 -- | Abort with a type error in the given expression
-typeError :: MonadError Doc m => UExp -> Doc -> m a
+typeError :: MonadError (Doc AnsiStyle) m => UExp -> Doc AnsiStyle -> m a
 typeError e doc = throwError $
-                  doc $$ text "in the expression" <+> squotes (pretty e)
+                  doc $$ pretty "in the expression" <+> squotes (prettyT e)
 
 ------------------------------------------------
 -- The typechecker
@@ -48,12 +49,12 @@ typeError e doc = throwError $
 -- This is parameterized over the choice of monad in order to support
 -- pure operation during testing. 'GlamE' is the canonical choice for the
 -- monad.
-check :: (MonadError Doc m, MonadReader Globals m)
+check :: (MonadError (Doc AnsiStyle) m, MonadReader Globals m)
       => UExp -> (forall t. STy t -> Exp '[] t -> m r)
       -> m r
 check = go emptyContext
   where
-    go :: (MonadError Doc m, MonadReader Globals m)
+    go :: (MonadError (Doc AnsiStyle) m, MonadReader Globals m)
        => SCtx ctx -> UExp -> (forall t. STy t -> Exp ctx t -> m r)
        -> m r
 
@@ -79,9 +80,9 @@ check = go emptyContext
             |  Just Refl <- arg_ty `eqSTy` arg_ty'
             -> k res_ty (App e1' e2')
           _ -> typeError e $
-               text "Bad function application." $$
-               indent 2 (vcat [ text "Function type:" <+> pretty ty1
-                              , text "Argument type:" <+> pretty ty2 ])
+               pretty "Bad function application." $$
+               indent 2 (vcat [ pretty "Function type:" <+> pretty ty1
+                              , pretty "Argument type:" <+> pretty ty2 ])
 
     go ctx e@(UArith e1 (UArithOp op) e2) k
       = go ctx e1 $ \sty1 e1' ->
@@ -90,9 +91,9 @@ check = go emptyContext
           (SIntTy, SIntTy)
             -> k sty (Arith e1' op e2')
           _ -> typeError e $
-               text "Bad arith operand(s)." $$
-               indent 2 (vcat [ text " Left-hand type:" <+> pretty sty1
-                              , text "Right-hand type:" <+> pretty sty2 ])
+               pretty "Bad arith operand(s)." $$
+               indent 2 (vcat [ pretty " Left-hand type:" <+> pretty sty1
+                              , pretty "Right-hand type:" <+> pretty sty2 ])
 
     go ctx e@(UCond e1 e2 e3) k
       = go ctx e1 $ \sty1 e1' ->
@@ -103,11 +104,11 @@ check = go emptyContext
             |  Just Refl <- sty2 `eqSTy` sty3
             -> k sty2 (Cond e1' e2' e3')
           _ -> typeError e $
-               text "Bad conditional." $$
-               indent 2 (vcat [ text "Flag type:" <+> pretty sty1
-                              , squotes (text "true") <+> text "expression type:"
+               pretty "Bad conditional." $$
+               indent 2 (vcat [ pretty "Flag type:" <+> pretty sty1
+                              , squotes (pretty "true") <+> pretty "expression type:"
                                                       <+> pretty sty2
-                              , squotes (text "false") <+> text "expression type:"
+                              , squotes (pretty "false") <+> pretty "expression type:"
                                                        <+> pretty sty3 ])
 
     go ctx e@(UFix e1) k
@@ -117,16 +118,16 @@ check = go emptyContext
             |  Just Refl <- arg `eqSTy` res
             -> k arg (Fix e1')
           _ -> typeError e $
-               text "Bad fix over expression with type:" <+> pretty sty1
+               pretty "Bad fix over expression with type:" <+> pretty sty1
 
     go _   (UIntE n)  k = k sty (IntE n)
     go _   (UBoolE b) k = k sty (BoolE b)
 
-check_var :: MonadError Doc m
+check_var :: MonadError (Doc AnsiStyle) m
           => SCtx ctx -> Int
           -> (forall t. STy t -> Elem ctx t -> m r)
           -> m r
-check_var SNil           _ _ = throwError (text "unbound variable")
+check_var SNil           _ _ = throwError (pretty "unbound variable")
                              -- shouldn't happen. caught by parser.
 
 -- | Type-check a de Bruijn index variable

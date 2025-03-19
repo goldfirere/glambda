@@ -32,7 +32,7 @@ import Text.Parsec.Prim as Parsec hiding ( parse )
 import Text.Parsec.Pos
 import Text.Parsec.Combinator
 
-import Text.PrettyPrint.ANSI.Leijen hiding ( (<$>) )
+import Prettyprinter (pretty, squotes, (<+>)) 
 
 import Data.List as List
 
@@ -167,7 +167,7 @@ tycon = do
   n <- tok' unName
   case readTyCon n of
     Nothing -> unexpected $ render $
-               text "type" <+> squotes (text n)
+               pretty "type" <+> squotes (pretty n)
     Just ty -> return ty
 
 add_op, mul_op, bool_op :: Parser (UExp -> UExp -> UExp)

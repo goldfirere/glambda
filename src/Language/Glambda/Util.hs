@@ -23,7 +23,10 @@ module Language.Glambda.Util (
   ) where
 
 import Text.Parsec
-import Text.PrettyPrint.ANSI.Leijen as Pretty
+import Prettyprinter (Pretty, pretty, Doc, SimpleDocStream, layoutPretty, defaultLayoutOptions, parens, hardline)
+import Prettyprinter.Render.String (renderShowS)
+import Prettyprinter.Render.Terminal (AnsiStyle, renderStrict)
+import Data.Text (unpack)
 
 import Data.Char
 import Data.List
@@ -44,7 +47,7 @@ ignore :: Functor f => f a -> f ()
 ignore = (() <$)
 
 instance Pretty ParseError where
-  pretty = text . show
+  pretty = pretty . show
 
 -- | More perspicuous synonym for operator precedence
 type Prec = Rational
@@ -54,21 +57,21 @@ topPrec :: Prec
 topPrec = 0
 
 -- | Convert a 'Doc' to a 'String'
-render :: Doc -> String
-render = flip displayS "" . toSimpleDoc
+render :: Doc AnsiStyle -> String
+render = unpack . renderStrict . toSimpleDoc
 
 -- | Convert a 'Doc' to a 'SimpleDoc' for further rendering
-toSimpleDoc :: Doc -> SimpleDoc
-toSimpleDoc = renderPretty 1.0 78
+toSimpleDoc :: Doc AnsiStyle -> SimpleDocStream AnsiStyle
+toSimpleDoc = layoutPretty defaultLayoutOptions
 
 -- | Enclose a 'Doc' in parens if the flag is 'True'
-maybeParens :: Bool -> Doc -> Doc
+maybeParens :: Bool -> Doc ann -> Doc ann
 maybeParens True  = parens
 maybeParens False = id
 
 -- | Synonym for 'Pretty.<$>'
-($$) :: Doc -> Doc -> Doc
-($$) = (Pretty.<$>)
+($$) :: Doc AnsiStyle -> Doc AnsiStyle -> Doc AnsiStyle
+a $$ b = a <> hardline <> b
 
 -- | (Inefficiently) strips whitespace from a string
 stripWhitespace :: String -> String

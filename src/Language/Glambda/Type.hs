@@ -1,5 +1,5 @@
 {-# LANGUAGE DataKinds, TypeOperators, PolyKinds,
-             GADTs, RankNTypes, FlexibleInstances #-}
+             GADTs, RankNTypes, FlexibleInstances, UndecidableInstances #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -20,11 +20,13 @@ module Language.Glambda.Type (
   -- * Glambda types to be used in Haskell types
   STy(..), SCtx(..), ITy(..),
   emptyContext, refineTy, unrefineTy, eqSTy,
+  PrettyT, prettyT
   ) where
 
 import Language.Glambda.Util
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter (Doc, pretty, Pretty, hsep, (<+>))
+import Prettyprinter.Render.Terminal (AnsiStyle)
 
 -- | Representation of a glambda type
 data Ty
@@ -96,6 +98,16 @@ eqSTy _ _ = Nothing
 -----------------------------------------
 -- Pretty-printing
 
+class PrettyT a where
+  prettyT :: a -> Doc AnsiStyle
+
+instance {-# OVERLAPPABLE #-} (Pretty a) => PrettyT a where
+  prettyT = pretty
+
+instance (PrettyT a, PrettyT b) => PrettyT (Either a b) where
+  prettyT (Right a) = pretty "Right" <+> prettyT a
+  prettyT (Left b) = pretty "Left" <+> prettyT b
+
 instance Pretty Ty where
   pretty = pretty_ty topPrec
 
@@ -110,10 +122,10 @@ arrowLeftPrec  = 5
 arrowRightPrec = 4.9
 arrowPrec      = 5
 
-pretty_ty :: Prec -> Ty -> Doc
+pretty_ty :: Prec -> Ty -> Doc ann 
 pretty_ty prec (Arr arg res) = maybeParens (prec >= arrowPrec) $
                                hsep [ pretty_ty arrowLeftPrec arg
-                                    , text "->"
+                                    , pretty "->"
                                     , pretty_ty arrowRightPrec res ]
-pretty_ty _ IntTy  = text "Int"
-pretty_ty _ BoolTy = text "Bool"
+pretty_ty _ IntTy  = pretty "Int"
+pretty_ty _ BoolTy = pretty "Bool"

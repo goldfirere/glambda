@@ -32,7 +32,8 @@ import Language.Glambda.Token
 import Language.Glambda.Type
 import Language.Glambda.Util
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter (Doc, annotate, nest, pretty, fillSep, (<+>), emptyDoc)
+import Prettyprinter.Render.Terminal (AnsiStyle, Color (Blue, Cyan, Green, Magenta, Red, Yellow), color)
 
 lamPrec, appPrec, appLeftPrec, appRightPrec, ifPrec :: Prec
 lamPrec = 1
@@ -60,7 +61,7 @@ precInfo GreaterE = (4, 4, 4)
 precInfo Equals   = (4, 4, 4)
 
 -- | A function that changes a 'Doc's color
-type ApplyColor = Doc -> Doc
+type ApplyColor = Doc AnsiStyle -> Doc AnsiStyle
 
 -- | Information about coloring in de Bruijn indexes and binders
 data Coloring = Coloring [ApplyColor]
@@ -71,33 +72,33 @@ data Coloring = Coloring [ApplyColor]
 defaultColoring :: Coloring
 defaultColoring = Coloring all_colors []
   where
-    all_colors = red : green : yellow : blue :
-                 magenta : cyan : all_colors
+    all_colors = annotate (color Red) : annotate (color Green) : annotate (color Yellow) : annotate (color Blue) :
+                 annotate (color Magenta) : annotate (color Cyan) : all_colors
 
 -- | A class for expressions that can be pretty-printed
-class Pretty exp => PrettyExp exp where
-  prettyExp :: Coloring -> Prec -> exp -> Doc
+class PrettyT exp => PrettyExp exp where
+  prettyExp :: Coloring -> Prec -> exp -> Doc AnsiStyle
 
 -- | Convenient implementation of 'pretty'
-defaultPretty :: PrettyExp exp => exp -> Doc
+defaultPretty :: PrettyExp exp => exp -> Doc AnsiStyle
 defaultPretty = nest 2 . prettyExp defaultColoring topPrec
 
 -- | Print a variable
-prettyVar :: Coloring -> Int -> Doc
-prettyVar (Coloring _ bound) n = nthDefault id n bound (char '#' <> int n)
+prettyVar :: Coloring -> Int -> Doc AnsiStyle
+prettyVar (Coloring _ bound) n = nthDefault id n bound (pretty '#' <> pretty n)
 
 -- | Print a lambda expression
-prettyLam :: PrettyExp exp => Coloring -> Prec -> Maybe Ty -> exp -> Doc
+prettyLam :: PrettyExp exp => Coloring -> Prec -> Maybe Ty -> exp -> Doc AnsiStyle
 prettyLam (Coloring (next : supply) existing) prec m_ty body
   = maybeParens (prec >= lamPrec) $
-    fillSep [ char 'λ' <> next (char '#') <>
-              maybe empty (\ty -> text ":" <> pretty ty) m_ty <> char '.'
+    fillSep [ pretty 'λ' <> next (pretty '#') <>
+              maybe emptyDoc (\ty -> pretty ":" <> pretty ty) m_ty <> pretty '.'
             , prettyExp (Coloring supply (next : existing)) topPrec body ]
 prettyLam _ _ _ _ = error "Infinite supply of colors ran out"
 
 -- | Print an application
 prettyApp :: (PrettyExp exp1, PrettyExp exp2)
-          => Coloring -> Prec -> exp1 -> exp2 -> Doc
+          => Coloring -> Prec -> exp1 -> exp2 -> Doc AnsiStyle
 prettyApp coloring prec e1 e2
   = maybeParens (prec >= appPrec) $
     fillSep [ prettyExp coloring appLeftPrec  e1
@@ -105,7 +106,7 @@ prettyApp coloring prec e1 e2
 
 -- | Print an arithemtic expression
 prettyArith :: (PrettyExp exp1, PrettyExp exp2)
-            => Coloring -> Prec -> exp1 -> ArithOp ty -> exp2 -> Doc
+            => Coloring -> Prec -> exp1 -> ArithOp ty -> exp2 -> Doc AnsiStyle
 prettyArith coloring prec e1 op e2
   = maybeParens (prec >= opPrec op) $
     fillSep [ prettyExp coloring (opLeftPrec op) e1 <+> pretty op
@@ -113,15 +114,15 @@ prettyArith coloring prec e1 op e2
 
 -- | Print a conditional
 prettyIf :: (PrettyExp exp1, PrettyExp exp2, PrettyExp exp3)
-         => Coloring -> Prec -> exp1 -> exp2 -> exp3 -> Doc
+         => Coloring -> Prec -> exp1 -> exp2 -> exp3 -> Doc AnsiStyle
 prettyIf coloring prec e1 e2 e3
   = maybeParens (prec >= ifPrec) $
-    fillSep [ text "if" <+> prettyExp coloring topPrec e1
-            , text "then" <+> prettyExp coloring topPrec e2
-            , text "else" <+> prettyExp coloring topPrec e3 ]
+    fillSep [ pretty "if" <+> prettyExp coloring topPrec e1
+            , pretty "then" <+> prettyExp coloring topPrec e2
+            , pretty "else" <+> prettyExp coloring topPrec e3 ]
 
 -- | Print a @fix@
-prettyFix :: PrettyExp exp => Coloring -> Prec -> exp -> Doc
+prettyFix :: PrettyExp exp => Coloring -> Prec -> exp -> Doc AnsiStyle
 prettyFix coloring prec e
   = maybeParens (prec >= appPrec) $
-    text "fix" <+> prettyExp coloring topPrec e
+    pretty "fix" <+> prettyExp coloring topPrec e

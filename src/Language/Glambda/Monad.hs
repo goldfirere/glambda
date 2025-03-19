@@ -31,7 +31,8 @@ import Language.Glambda.Util
 
 import System.Console.Haskeline
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter (Doc, hardline, pretty)
+import Prettyprinter.Render.Terminal (AnsiStyle, renderIO)
 
 import Control.Monad (mzero)
 import Control.Monad.Trans.Maybe
@@ -50,8 +51,8 @@ newtype Glam a = Glam { unGlam :: MaybeT (StateT Globals (InputT IO)) a }
   deriving (Monad, Functor, Applicative, MonadState Globals, MonadIO)
 
 -- | Like the 'Glam' monad, but also supporting error messages via 'Doc's
-newtype GlamE a = GlamE { unGlamE :: ExceptT Doc Glam a }
-  deriving (Monad, Functor, Applicative, MonadError Doc)
+newtype GlamE a = GlamE { unGlamE :: ExceptT (Doc AnsiStyle) Glam a }
+  deriving (Monad, Functor, Applicative, MonadError (Doc AnsiStyle))
 
 instance MonadReader Globals GlamE where
   ask = GlamE get
@@ -65,14 +66,14 @@ instance MonadReader Globals GlamE where
 -- | Class for the two glamorous monads
 class GlamM m where
   -- | Print a 'Doc' without a newline at the end
-  printDoc :: Doc -> m ()
+  printDoc :: Doc AnsiStyle -> m ()
 
   -- | Print a 'Doc' with a newline
-  printLine :: Doc -> m ()
+  printLine :: Doc AnsiStyle -> m ()
 
 instance GlamM Glam where
-  printDoc = Glam . liftIO . displayIO stdout . toSimpleDoc
-  printLine = Glam . liftIO . displayIO stdout . toSimpleDoc . (<> hardline)
+  printDoc = Glam . liftIO . renderIO stdout . toSimpleDoc
+  printLine = Glam . liftIO . renderIO stdout . toSimpleDoc . (<> hardline)
 
 instance GlamM GlamE where
   printDoc = GlamE . lift . printDoc
@@ -86,16 +87,16 @@ prompt = Glam . lift . lift . getInputLine
 -- | Abort the 'Glam' monad
 quit :: Glam a
 quit = do
-  printLine (text "Good-bye.")
+  printLine (pretty "Good-bye.")
   Glam mzero
 
 -- | Abort the computation with an error
-issueError :: Doc -> GlamE a
+issueError :: Doc AnsiStyle -> GlamE a
 issueError = GlamE . throwError
 
 -- | Hoist an 'Either' into 'GlamE'
 eitherToGlamE :: Either String a -> GlamE a
-eitherToGlamE (Left err) = issueError (text err)
+eitherToGlamE (Left err) = issueError (pretty err)
 eitherToGlamE (Right x)  = return x
 
 -- | Run a 'Glam' computation
@@ -104,6 +105,6 @@ runGlam thing_inside
   = ignore $ flip evalStateT emptyGlobals $ runMaybeT $ unGlam thing_inside
 
 -- | Run a 'GlamE' computation
-runGlamE :: GlamE a -> Glam (Either Doc a)
+runGlamE :: GlamE a -> Glam (Either (Doc AnsiStyle) a)
 runGlamE thing_inside
   = runExceptT $ unGlamE thing_inside

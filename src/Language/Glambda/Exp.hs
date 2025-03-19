@@ -23,7 +23,8 @@ import Language.Glambda.Token
 import Language.Glambda.Util
 import Language.Glambda.Type
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter (Pretty, pretty, Doc, nest)
+import Prettyprinter.Render.Terminal (AnsiStyle)
 
 -- | @Elem xs x@ is evidence that @x@ is in the list @xs@.
 -- @EZ :: Elem xs x@ is evidence that @x@ is the first element of @xs@.
@@ -90,14 +91,14 @@ eqExp _             _             = False
 ----------------------------------------------------
 -- Pretty-printing
 
-instance Pretty (Exp ctx ty) where
-  pretty = defaultPretty
+instance PrettyT (Exp ctx ty) where
+  prettyT = defaultPretty
 
 instance PrettyExp (Exp ctx ty) where
   prettyExp = pretty_exp
 
-instance GlamVal ty => Pretty (Val ty) where
-  pretty = defaultPretty
+instance GlamVal ty => PrettyT (Val ty) where
+  prettyT = defaultPretty
 
 instance GlamVal ty => PrettyExp (Val ty) where
   prettyExp coloring prec v = prettyExp coloring prec (val v)
@@ -105,18 +106,18 @@ instance GlamVal ty => PrettyExp (Val ty) where
 -- | Pretty-prints a 'Val'. This needs type information to know how to print.
 -- Pattern matching gives GHC enough information to be able to find the
 -- 'GlamVal' instance needed to construct the 'PrettyExp' instance.
-prettyVal :: Val t -> STy t -> Doc
-prettyVal val SIntTy       = pretty val
-prettyVal val SBoolTy      = pretty val
-prettyVal val (_ `SArr` _) = pretty val
+prettyVal :: Val t -> STy t -> Doc AnsiStyle
+prettyVal val SIntTy       = prettyT val
+prettyVal val SBoolTy      = prettyT val
+prettyVal val (_ `SArr` _) = prettyT val
 
-pretty_exp :: Coloring -> Prec -> Exp ctx ty -> Doc
+pretty_exp :: Coloring -> Prec -> Exp ctx ty -> Doc AnsiStyle
 pretty_exp c _    (Var n)          = prettyVar c (elemToInt n)
 pretty_exp c prec (Lam body)       = prettyLam c prec Nothing body
 pretty_exp c prec (App e1 e2)      = prettyApp c prec e1 e2
 pretty_exp c prec (Arith e1 op e2) = prettyArith c prec e1 op e2
 pretty_exp c prec (Cond e1 e2 e3)  = prettyIf c prec e1 e2 e3
 pretty_exp c prec (Fix e)          = prettyFix c prec e
-pretty_exp _ _    (IntE n)         = int n
-pretty_exp _ _    (BoolE True)     = text "true"
-pretty_exp _ _    (BoolE False)    = text "false"
+pretty_exp _ _    (IntE n)         = pretty n
+pretty_exp _ _    (BoolE True)     = pretty "true"
+pretty_exp _ _    (BoolE False)    = pretty "false"
