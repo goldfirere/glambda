@@ -19,7 +19,8 @@ module Language.Glambda.Globals (
 import Language.Glambda.Exp
 import Language.Glambda.Type
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter (Doc, pretty, (<+>), squotes)
+import Prettyprinter.Render.Terminal (AnsiStyle)
 
 import Control.Monad.Except
 
@@ -45,7 +46,7 @@ extend var sty exp (Globals globals)
 
 -- | Lookup a global variable. Fails with 'throwError' if the variable
 -- is not bound.
-lookupGlobal :: MonadError Doc m
+lookupGlobal :: MonadError (Doc AnsiStyle) m
              => Globals -> String
              -> (forall ty. STy ty -> Exp '[] ty -> m r)
              -> m r
@@ -53,5 +54,5 @@ lookupGlobal (Globals globals) var k
   = case Map.lookup var globals of
       Just (EExp sty exp) -> k sty exp
       Nothing             -> throwError $
-                             text "Global variable not in scope:" <+>
-                               squotes (text var)
+                             pretty "Global variable not in scope:" <+>
+                               squotes (pretty var)

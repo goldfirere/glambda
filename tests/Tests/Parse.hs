@@ -3,11 +3,12 @@ module Tests.Parse where
 import Language.Glambda.Lex
 import Language.Glambda.Parse
 import Language.Glambda.Util
+import Language.Glambda.Type
 import Tests.Util
 
 import Prelude hiding ( lex )
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter (unAnnotate)
 
 import Data.List as List
 
@@ -35,7 +36,7 @@ parseTests :: TestTree
 parseTests = testGroup "Parser"
   [ testGroup "Success" $
     List.map (\(str, out) -> testCase ("`" ++ str ++ "'") $
-              render (plain $ pretty (parseExp =<< lex str)) @?=
+              render (unAnnotate $ prettyT (parseExp =<< lex str)) @?=
                 ("Right " ++ out))
              parseTestCases
   , testGroup "Failure" $

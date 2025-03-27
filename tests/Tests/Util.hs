@@ -24,7 +24,7 @@ import Language.Glambda.Util
 import Test.Tasty
 import Test.Tasty.HUnit ( testCase, (@?), Assertion )
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter (Pretty, pretty, (<+>), squotes, semi)
 
 import Text.Parsec ( ParseError )
 
@@ -32,8 +32,8 @@ import Data.Function
 import Language.Haskell.TH
 
 prettyError :: Pretty a => a -> a -> String
-prettyError exp act = render $ text "Expected" <+> squotes (pretty exp) <> semi <+>
-                                text "got" <+> squotes (pretty act)
+prettyError exp act = render $ pretty "Expected" <+> squotes (pretty exp) <> semi <+>
+                                pretty "got" <+> squotes (pretty act)
 
 (@?=) :: (Eq a, Pretty a) => a -> a -> Assertion
 act @?= exp = (act == exp) @? prettyError exp act
@@ -50,5 +50,5 @@ $( do decs <- reifyInstances ''Eq [ConT ''ParseError]
         _  -> return [] )
 
 instance (Pretty a, Pretty b) => Pretty (Either a b) where
-  pretty (Left x)  = text "Left" <+> pretty x
-  pretty (Right x) = text "Right" <+> pretty x
+  pretty (Left x)  = pretty "Left" <+> pretty x
+  pretty (Right x) = pretty "Right" <+> pretty x

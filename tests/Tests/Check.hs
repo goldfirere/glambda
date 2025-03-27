@@ -16,7 +16,7 @@ import Language.Glambda.Util
 import Control.Monad.Trans.Except
 import Control.Monad.Reader
 
-import Text.PrettyPrint.ANSI.Leijen
+import Prettyprinter(pretty, unAnnotate)
 
 import Data.Maybe
 import Data.List as List
@@ -54,12 +54,12 @@ checkTests = testGroup "Typechecker" $
   List.map (\(expr_str, m_result) ->
                testCase ("`" ++ expr_str ++ "'")
                (case flip runReader id_globals $ runExceptT $ do
-                       uexp <- hoistEither $ Arrow.left text $ parseExp =<< lex expr_str
+                       uexp <- hoistEither $ Arrow.left pretty $ parseExp =<< lex expr_str
                        check uexp $ \sty exp -> return $
                          case m_result of
                            Just result
-                             -> (render (plain $ pretty exp), unrefineTy sty,
-                                 render (plain $ prettyVal (eval exp) sty))
+                             -> (render (unAnnotate $ prettyT exp), unrefineTy sty,
+                                 render (unAnnotate $ prettyVal (eval exp) sty))
                                  @?= result
                            _ -> assertFailure "unexpected type-check success"
                   of

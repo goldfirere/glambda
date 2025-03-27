@@ -34,7 +34,8 @@ import Language.Glambda.Monad
 import Language.Glambda.Exp
 import Language.Glambda.Type
 
-import Text.PrettyPrint.ANSI.Leijen as Pretty hiding ( (<$>) )
+import Prettyprinter (Doc, Pretty, (<+>), pretty, colon, emptyDoc, squotes, parens, vcat, indent)
+import Prettyprinter.Render.Terminal (AnsiStyle)
 
 import System.Console.Haskeline
 import System.Directory
@@ -69,13 +70,13 @@ loop = do
 helloWorld :: Glam ()
 helloWorld = do
   printLine lambda
-  printLine $ text "Welcome to the Glamorous Glambda interpreter, version" <+>
-              text version <> char '.'
+  printLine $ pretty "Welcome to the Glamorous Glambda interpreter, version" <+>
+              pretty version <> pretty '.'
 
 -- | The welcome message
-lambda :: Doc
+lambda :: Doc AnsiStyle
 lambda
-  = vcat $ List.map text
+  = vcat $ List.map pretty 
     [ "                   \\\\\\\\\\\\          "
     , "                    \\\\\\\\\\\\         "
     , "                 /-\\ \\\\\\\\\\\\       "
@@ -112,7 +113,7 @@ doStmt (BareExp uexp) thing_inside = check uexp $ \sty exp -> do
   printLine $ printValWithType (eval exp) sty
   thing_inside
 doStmt (NewGlobal g uexp) thing_inside = check uexp $ \sty exp -> do
-  printLine $ text g <+> char '=' <+> printWithType exp sty
+  printLine $ pretty g <+> pretty '=' <+> printWithType exp sty
   local (extend g sty exp) thing_inside
 
 -------------------------------------------
@@ -127,11 +128,11 @@ type CommandTable = [(String, String -> Glam ())]
 dispatchCommand :: CommandTable -> String -> Glam ()
 dispatchCommand table line
   = case List.filter ((cmd `List.isPrefixOf`) . fst) table of
-      []            -> printLine $ text "Unknown command:" <+> squotes (text cmd)
+      []            -> printLine $ pretty "Unknown command:" <+> squotes (pretty cmd)
       [(_, action)] -> action arg
-      many          -> do printLine $ text "Ambiguous command:" <+> squotes (text cmd)
-                          printLine $ text "Possibilities:" $$
-                                      indent 2 (vcat $ List.map (text . fst) many)
+      many          -> do printLine $ pretty "Ambiguous command:" <+> squotes (pretty cmd)
+                          printLine $ pretty "Possibilities:" $$
+                                      indent 2 (vcat $ List.map (pretty . fst) many)
   where (cmd, arg) = List.break isSpace line
 
 cmdTable :: CommandTable
@@ -150,14 +151,14 @@ quitCmd _ = quit
 class Reportable a where
   report :: a -> Glam Globals
 
-instance Reportable Doc where
+instance Reportable (Doc AnsiStyle) where
   report x = printLine x >> get
 instance Reportable () where
   report _ = get
 instance Reportable Globals where
   report = return
-instance {-# OVERLAPPABLE #-} Pretty a => Reportable a where
-  report other = printLine (pretty other) >> get
+instance {-# OVERLAPPABLE #-} PrettyT a => Reportable a where
+  report other = printLine (prettyT other) >> get
 
 reportErrors :: Reportable a => GlamE a -> Glam ()
 reportErrors thing_inside = do
@@ -170,11 +171,11 @@ reportErrors thing_inside = do
 parseLex :: String -> GlamE UExp
 parseLex = parseExpG <=< lexG
 
-printWithType :: (Pretty exp, Pretty ty) => exp -> ty -> Doc
+printWithType :: (PrettyT exp, Pretty ty) => exp -> ty -> Doc AnsiStyle
 printWithType exp ty
-  = pretty exp <+> colon <+> pretty ty
+  = prettyT exp <+> colon <+> pretty ty
 
-printValWithType :: Val ty -> STy ty -> Doc
+printValWithType :: Val ty -> STy ty -> Doc AnsiStyle
 printValWithType val sty
   = prettyVal val sty <+> colon <+> pretty sty
 
@@ -194,7 +195,7 @@ stepCmd expr = reportErrors $ do
     printLine $ printWithType exp sty
     let loop e = case step e of
           Left e' -> do
-            printLine $ text "-->" <+> printWithType e' sty
+            printLine $ pretty "-->" <+> printWithType e' sty
             loop e'
           Right v -> return v
     v <- loop exp
@@ -205,11 +206,11 @@ typeCmd expr = reportErrors $ do
   check uexp $ \sty exp -> return (printWithType exp sty)
 
 allCmd expr = do
-  printLine (text "Small step:")
+  printLine (pretty "Small step:")
   _ <- stepCmd expr
 
-  printLine Pretty.empty
-  printLine (text "Big step:")
+  printLine emptyDoc
+  printLine (pretty "Big step:")
   evalCmd expr
 
 loadCmd (stripWhitespace -> file) = do
@@ -219,6 +220,6 @@ loadCmd (stripWhitespace -> file) = do
   runStmts contents
   where
     file_not_found = do
-      printLine (text "File not found:" <+> squotes (text file))
+      printLine (pretty "File not found:" <+> squotes (pretty file))
       cwd <- liftIO getCurrentDirectory
-      printLine (parens (text "Current directory:" <+> text cwd))
+      printLine (parens (pretty "Current directory:" <+> pretty cwd))
